@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# AWS
+.aws-sam/
+samconfig.toml
+
+# Cache of LLM responses during iteration (CLAUDE.md: cache responses)
+.cache/
+
+# Third-party screenplay PDFs: fetched by scripts/fetch_fixtures.py, not ours
+# to redistribute. The .fdx fixtures and the rendered PDF are committed.
+tests/fixtures/real-screenplay*.pdf
+
+# Run artifacts
+out/
+*.log
+
+# Node (Layer 7)
+node_modules/
+.vite/
+dist-ssr/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/settings.json
