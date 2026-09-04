@@ -28,8 +28,8 @@ from typing import Any
 
 from lxml import etree
 
-from ripple.events import EventKind, EventStream, NullStream
-from ripple.model.script import (
+from bluepages.events import EventKind, EventStream, NullStream
+from bluepages.model.script import (
     Element,
     ElementType,
     InteriorExterior,

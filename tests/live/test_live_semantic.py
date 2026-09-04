@@ -25,12 +25,12 @@ from pathlib import Path
 
 import pytest
 
-from ripple.diff import align, diff_drafts
-from ripple.events import CollectingStream, EventKind
-from ripple.llm import ModelClient, RunBudget
-from ripple.parse import parse_fdx
-from ripple.semantic import extract_draft, reason_about_diff, score
-from ripple.testdata import ChangeKind, load_answer_key
+from bluepages.diff import align, diff_drafts
+from bluepages.events import CollectingStream, EventKind
+from bluepages.llm import ModelClient, RunBudget
+from bluepages.parse import parse_fdx
+from bluepages.semantic import extract_draft, reason_about_diff, score
+from bluepages.testdata import ChangeKind, load_answer_key
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
 

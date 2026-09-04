@@ -16,10 +16,10 @@ from pathlib import Path
 
 import pytest
 
-from ripple.events import CollectingStream, EventKind
-from ripple.model import ElementType, InteriorExterior, TimeOfDay
-from ripple.parse import parse_script
-from ripple.parse.pdf import Margins, PdfParseError, calibrate, parse_pdf
+from bluepages.events import CollectingStream, EventKind
+from bluepages.model import ElementType, InteriorExterior, TimeOfDay
+from bluepages.parse import parse_script
+from bluepages.parse.pdf import Margins, PdfParseError, calibrate, parse_pdf
 
 FIXTURES = Path(__file__).parent.parent / "fixtures"
 
@@ -98,7 +98,7 @@ class TestMarginCalibration:
         assert m["character"] == pytest.approx(3.7, abs=0.1)
 
     def test_calibration_falls_back_when_too_little_text(self):
-        from ripple.parse.pdf import _Line
+        from bluepages.parse.pdf import _Line
 
         margins = calibrate([_Line(text="x", x0=1.5, top=0, page=0)])
         assert margins.confidence == 0.0
@@ -125,7 +125,7 @@ class TestClassification:
 
     def test_long_line_at_cue_column_is_dialogue(self):
         """In a tight layout, wrapped dialogue can land on the cue column."""
-        from ripple.parse.pdf import _looks_like_cue
+        from bluepages.parse.pdf import _looks_like_cue
 
         assert _looks_like_cue("MARK")
         assert _looks_like_cue("ERICA (V.O.)")
@@ -175,7 +175,7 @@ class TestSceneExtraction:
         assert sum(1 for e in dialogue if e.speaker) / len(dialogue) > 0.9
 
     def test_source_tier_recorded(self, social):
-        from ripple.model import SourceTier
+        from bluepages.model import SourceTier
 
         assert social.source_tier is SourceTier.PDF
 
@@ -191,7 +191,7 @@ class TestTierEquivalence:
     @pytest.fixture(scope="class")
     @classmethod
     def pair(cls):
-        from ripple.parse import parse_fdx
+        from bluepages.parse import parse_fdx
 
         return (
             parse_fdx(FIXTURES / "feature-draft-1.fdx"),

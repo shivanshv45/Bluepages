@@ -1,4 +1,4 @@
-"""The `ripple` command line.
+"""The `bluepages` command line.
 
 `doctor` is the Layer 0 gate: it proves a script can call Bedrock and get a
 response back, and when it cannot, it says exactly which console step is
@@ -15,11 +15,11 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from ripple.config import get_settings
-from ripple.events import CollectingStream, EventKind, RichConsoleStream, TeeStream
+from bluepages.config import get_settings
+from bluepages.events import CollectingStream, EventKind, RichConsoleStream, TeeStream
 
 app = typer.Typer(
-    name="ripple",
+    name="bluepages",
     help="Diff film script drafts and route the consequences per department.",
     no_args_is_help=True,
     add_completion=False,
@@ -39,8 +39,8 @@ def parse(
     verbose: Annotated[bool, typer.Option("-v", "--verbose", help="Show per-scene events")] = False,
 ) -> None:
     """Parse a draft into the structured script model."""
-    from ripple.parse import UnsupportedFormatError, parse_script
-    from ripple.parse.fdx import FdxParseError
+    from bluepages.parse import UnsupportedFormatError, parse_script
+    from bluepages.parse.fdx import FdxParseError
 
     collected = CollectingStream()
     stream = TeeStream(collected, RichConsoleStream(verbose=verbose))
@@ -100,7 +100,7 @@ def doctor() -> None:
     settings = get_settings()
     problems: list[str] = []
 
-    console.print("\n[bold]Revision Ripple: environment check[/bold]\n")
+    console.print("\n[bold]Bluepages: environment check[/bold]\n")
 
     # --- Python -----------------------------------------------------------
     v = sys.version_info
@@ -161,11 +161,11 @@ def doctor() -> None:
 
     # --- Cost guards -------------------------------------------------------
     console.print("\n[bold]Cost guards[/bold]\n")
-    console.print(f"  {OK} max_tokens per call: {settings.ripple_max_tokens}")
-    console.print(f"  {OK} max model calls per run: {settings.ripple_max_llm_calls_per_run}")
+    console.print(f"  {OK} max_tokens per call: {settings.bluepages_max_tokens}")
+    console.print(f"  {OK} max model calls per run: {settings.bluepages_max_llm_calls_per_run}")
     console.print(
-        f"  {OK if settings.ripple_cache_llm else WARN} response caching: "
-        f"{'on' if settings.ripple_cache_llm else 'off'}"
+        f"  {OK if settings.bluepages_cache_llm else WARN} response caching: "
+        f"{'on' if settings.bluepages_cache_llm else 'off'}"
     )
 
     # --- Verdict -----------------------------------------------------------
@@ -218,7 +218,7 @@ def _check_bedrock(settings, problems: list[str]) -> None:
                 console.print(f"       [dim]available e.g. {', '.join(close)}[/dim]")
 
     # The real test: one tiny call. `max_tokens` is small on purpose.
-    from ripple.llm import ModelClient, RunBudget
+    from bluepages.llm import ModelClient, RunBudget
 
     for role, model_id in wanted.items():
         client = ModelClient(settings=settings, budget=RunBudget(max_calls=4))
@@ -256,8 +256,8 @@ def diff(
     The mechanical layer only. It reports what changed, not what the changes
     mean; the semantic pass is Layer 3.4 and needs Bedrock.
     """
-    from ripple.diff import align, diff_drafts
-    from ripple.parse import parse_script
+    from bluepages.diff import align, diff_drafts
+    from bluepages.parse import parse_script
 
     stream = RichConsoleStream(verbose=verbose)
     old_draft = parse_script(before, stream=stream)
@@ -274,7 +274,7 @@ def diff(
 
 
 def _print_diff(alignment, result) -> None:
-    from ripple.diff import AlignmentKind
+    from bluepages.diff import AlignmentKind
 
     summary = alignment.summary()
     table = Table(title="alignment", show_header=False, title_justify="left")
@@ -334,8 +334,8 @@ def _print_diff(alignment, result) -> None:
 
 def _score_against_key(key_path: Path, alignment, result) -> None:
     """Compare what the diff found against the labelled ground truth."""
-    from ripple.diff import AlignmentKind
-    from ripple.testdata import load_answer_key
+    from bluepages.diff import AlignmentKind
+    from bluepages.testdata import load_answer_key
 
     answer_key = load_answer_key(key_path)
     expected = answer_key.scenes_touched()
@@ -371,7 +371,7 @@ def key(
     A key that has drifted from its fixtures is worse than no key: it reports
     success against scenes that no longer exist. This validates every claim.
     """
-    from ripple.testdata import load_answer_key, summarise, validate
+    from bluepages.testdata import load_answer_key, summarise, validate
 
     try:
         answer_key = load_answer_key(path)
@@ -434,15 +434,15 @@ def reason(
     This is Layers 3.3 and 3.4 and it costs money. Every call is bounded by the
     run budget and cached on disk, so re-running on an unchanged pair is free.
     """
-    from ripple.diff import align, diff_drafts
-    from ripple.llm import ModelClient, RunBudget
-    from ripple.parse import parse_script
-    from ripple.semantic import extract_draft, reason_about_diff
+    from bluepages.diff import align, diff_drafts
+    from bluepages.llm import ModelClient, RunBudget
+    from bluepages.parse import parse_script
+    from bluepages.semantic import extract_draft, reason_about_diff
 
     settings = get_settings()
     stream = RichConsoleStream(verbose=verbose)
     budget = RunBudget(
-        max_calls=max_calls or settings.ripple_max_llm_calls_per_run
+        max_calls=max_calls or settings.bluepages_max_llm_calls_per_run
     )
     client = ModelClient(settings=settings, stream=stream, budget=budget)
 
@@ -482,7 +482,7 @@ def reason(
 
 def _scenes_touched(alignment, mechanical) -> set[str]:
     """Scene numbers worth spending an extraction call on."""
-    from ripple.diff import AlignmentKind
+    from bluepages.diff import AlignmentKind
 
     return (
         {s.number for s in mechanical.scenes}
@@ -539,8 +539,8 @@ def _print_findings(result, elements) -> None:
 
 def _score_semantic(key_path: Path, result):
     """Score the semantic run against the labelled ground truth."""
-    from ripple.semantic import score
-    from ripple.testdata import load_answer_key
+    from bluepages.semantic import score
+    from bluepages.testdata import load_answer_key
 
     answer_key = load_answer_key(key_path)
     card = score(answer_key, result)
@@ -656,9 +656,9 @@ def models() -> None:
 @app.command()
 def version() -> None:
     """Print the version."""
-    from ripple import __version__
+    from bluepages import __version__
 
-    console.print(f"revision-ripple {__version__}")
+    console.print(f"bluepages {__version__}")
 
 
 if __name__ == "__main__":

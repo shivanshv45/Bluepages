@@ -5,14 +5,14 @@ mechanical diff (3.2) then works inside each aligned pair, producing the raw
 change spans the semantic layer reasons over.
 """
 
-from ripple.diff.align import (
+from bluepages.diff.align import (
     Alignment,
     AlignmentKind,
     AlignmentMethod,
     ScenePair,
     align,
 )
-from ripple.diff.mechanical import (
+from bluepages.diff.mechanical import (
     ChangeSpan,
     DraftDiff,
     RelocationCandidate,

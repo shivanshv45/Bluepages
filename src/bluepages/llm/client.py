@@ -25,9 +25,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from ripple.config import Settings, get_settings
-from ripple.events import EventKind, EventStream, NullStream
-from ripple.llm.fallback import is_retryable
+from bluepages.config import Settings, get_settings
+from bluepages.events import EventKind, EventStream, NullStream
+from bluepages.llm.fallback import is_retryable
 
 
 class BudgetExceededError(RuntimeError):
@@ -92,7 +92,7 @@ class RunBudget:
         if self.calls_made >= self.max_calls:
             raise BudgetExceededError(
                 f"run hit its ceiling of {self.max_calls} model calls. "
-                "Raise RIPPLE_MAX_LLM_CALLS_PER_RUN only if this is expected."
+                "Raise BLUEPAGES_MAX_LLM_CALLS_PER_RUN only if this is expected."
             )
 
     def summary(self) -> dict[str, Any]:
@@ -121,7 +121,7 @@ class ModelClient:
     ) -> None:
         self.settings = settings or get_settings()
         self.stream = stream or NullStream()
-        self.budget = budget or RunBudget(max_calls=self.settings.ripple_max_llm_calls_per_run)
+        self.budget = budget or RunBudget(max_calls=self.settings.bluepages_max_llm_calls_per_run)
         self._models: dict[str, Any] = {}
 
     # --- chain construction ------------------------------------------------
@@ -160,7 +160,7 @@ class ModelClient:
         self.budget.check()
 
         # CLAUDE.md: always set max_tokens. No path leaves this None.
-        max_tokens = max_tokens or self.settings.ripple_max_tokens
+        max_tokens = max_tokens or self.settings.bluepages_max_tokens
 
         cache_path = self._cache_path(
             prompt, system, judgment, max_tokens, temperature, cache_key_extra
@@ -382,7 +382,7 @@ class ModelClient:
 
     def _cache_path(self, *parts: Any) -> Path | None:
         """A stable path for this exact request, or None when caching is off."""
-        if not self.settings.ripple_cache_llm:
+        if not self.settings.bluepages_cache_llm:
             return None
         digest = hashlib.sha256(
             json.dumps([str(p) for p in parts], sort_keys=True).encode()

@@ -28,9 +28,9 @@ import re
 from dataclasses import dataclass, field
 from enum import Enum
 
-from ripple.diff.align import Alignment, ScenePair
-from ripple.events import EventKind, EventStream, NullStream
-from ripple.model import Element, ElementType
+from bluepages.diff.align import Alignment, ScenePair
+from bluepages.events import EventKind, EventStream, NullStream
+from bluepages.model import Element, ElementType
 
 
 class SpanKind(str, Enum):

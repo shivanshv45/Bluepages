@@ -11,10 +11,10 @@ from pathlib import Path
 
 import pytest
 
-from ripple.events import CollectingStream, EventKind
-from ripple.model import Scene, SceneNumber
-from ripple.parse import parse_fdx
-from ripple.semantic.elements import (
+from bluepages.events import CollectingStream, EventKind
+from bluepages.model import Scene, SceneNumber
+from bluepages.parse import parse_fdx
+from bluepages.semantic.elements import (
     CATEGORY_DEPARTMENT,
     DraftElements,
     ElementCategory,

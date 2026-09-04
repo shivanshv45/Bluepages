@@ -7,7 +7,7 @@ Built here at the start rather than retrofitted, per PLAN.md 3.6 and
 DECISIONS.md: adding events later means touching every stage again.
 """
 
-from ripple.events.stream import (
+from bluepages.events.stream import (
     CollectingStream,
     Event,
     EventKind,

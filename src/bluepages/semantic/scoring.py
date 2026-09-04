@@ -27,8 +27,8 @@ import re
 
 from pydantic import BaseModel, Field
 
-from ripple.semantic.reasoning import Finding, SemanticResult
-from ripple.testdata import AnswerKey, ChangeKind, Department, LabelledChange
+from bluepages.semantic.reasoning import Finding, SemanticResult
+from bluepages.testdata import AnswerKey, ChangeKind, Department, LabelledChange
 
 
 class ChangeScore(BaseModel):

@@ -6,7 +6,7 @@ second against the labelled answer key, because a semantic result with nothing
 to check it against is not verified.
 """
 
-from ripple.semantic.elements import (
+from bluepages.semantic.elements import (
     CATEGORY_DEPARTMENT,
     DraftElements,
     ElementCategory,
@@ -15,12 +15,12 @@ from ripple.semantic.elements import (
     extract_draft,
     extract_scene,
 )
-from ripple.semantic.reasoning import (
+from bluepages.semantic.reasoning import (
     Finding,
     SemanticResult,
     reason_about_diff,
 )
-from ripple.semantic.scoring import ChangeScore, Scorecard, score
+from bluepages.semantic.scoring import ChangeScore, Scorecard, score
 
 __all__ = [
     "CATEGORY_DEPARTMENT",

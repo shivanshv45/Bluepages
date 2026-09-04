@@ -30,12 +30,12 @@ import concurrent.futures
 
 from pydantic import BaseModel, Field, field_validator
 
-from ripple.diff import Alignment, AlignmentKind, DraftDiff, SceneDiff
-from ripple.events import EventKind, EventStream, NullStream
-from ripple.llm import ModelClient
-from ripple.llm.structured import SchemaError, parse_as
-from ripple.semantic.elements import DraftElements
-from ripple.testdata import ChangeKind, Department
+from bluepages.diff import Alignment, AlignmentKind, DraftDiff, SceneDiff
+from bluepages.events import EventKind, EventStream, NullStream
+from bluepages.llm import ModelClient
+from bluepages.llm.structured import SchemaError, parse_as
+from bluepages.semantic.elements import DraftElements
+from bluepages.testdata import ChangeKind, Department
 
 # Confidence below this is reported but marked for the AD to check rather than
 # sent to a department as fact.

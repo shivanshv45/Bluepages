@@ -16,10 +16,10 @@ from pathlib import Path
 
 import pytest
 
-from ripple.events import CollectingStream, EventKind
-from ripple.model import ElementType, InteriorExterior, TimeOfDay
-from ripple.parse import UnsupportedFormatError, parse_script
-from ripple.parse.fdx import FdxParseError, parse_fdx, parse_fdx_string
+from bluepages.events import CollectingStream, EventKind
+from bluepages.model import ElementType, InteriorExterior, TimeOfDay
+from bluepages.parse import UnsupportedFormatError, parse_script
+from bluepages.parse.fdx import FdxParseError, parse_fdx, parse_fdx_string
 
 FIXTURES = Path(__file__).parent.parent / "fixtures"
 
@@ -264,7 +264,7 @@ class TestErrorHandling:
 
         A truncated PDF is a PDF problem, not an unsupported format.
         """
-        from ripple.parse import PdfParseError
+        from bluepages.parse import PdfParseError
 
         p = tmp_path / "script.pdf"
         p.write_bytes(b"%PDF-1.4")
@@ -318,7 +318,7 @@ class TestProgressEvents:
 class TestRoundTrip:
     def test_model_survives_json(self, small):
         """Layer 4 persists this and Layer 7 ships it over the wire."""
-        from ripple.model import Screenplay
+        from bluepages.model import Screenplay
 
         restored = Screenplay.model_validate_json(small.model_dump_json())
         assert restored.scene_count == small.scene_count

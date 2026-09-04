@@ -49,7 +49,7 @@ def fetch(name: str, url: str, note: str) -> bool:
 
     print(f"  get   {name}  <- {url}")
     try:
-        request = urllib.request.Request(url, headers={"User-Agent": "revision-ripple/0.1"})
+        request = urllib.request.Request(url, headers={"User-Agent": "bluepages/0.1"})
         with urllib.request.urlopen(request, timeout=60) as response:
             data = response.read()
     except (urllib.error.URLError, TimeoutError) as exc:

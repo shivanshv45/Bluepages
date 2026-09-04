@@ -1,4 +1,4 @@
-"""The `ripple reason` command, wired end to end with a scripted model.
+"""The `bluepages reason` command, wired end to end with a scripted model.
 
 This covers the part that unit tests on the individual layers miss: that the
 CLI actually connects parse -> align -> diff -> extract -> reason -> score, and
@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-from ripple.cli import app
+from bluepages.cli import app
 from tests.unit.fakes import ScriptedClient, elements_answer, findings_answer
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
@@ -128,8 +128,8 @@ def scripted(monkeypatch):
     def build(*args, **kwargs):
         return client
 
-    monkeypatch.setattr("ripple.llm.ModelClient", build)
-    monkeypatch.setattr("ripple.llm.client.ModelClient", build)
+    monkeypatch.setattr("bluepages.llm.ModelClient", build)
+    monkeypatch.setattr("bluepages.llm.client.ModelClient", build)
     return client
 
 
@@ -145,7 +145,7 @@ def test_reason_scores_a_correct_run_and_exits_zero(scripted):
 def test_reason_exits_non_zero_when_the_key_is_not_met(monkeypatch):
     """A failing score must fail the command, or CI cannot gate on correctness."""
     client = ScriptedClient(default={"findings": []})
-    monkeypatch.setattr("ripple.llm.ModelClient", lambda *a, **k: client)
+    monkeypatch.setattr("bluepages.llm.ModelClient", lambda *a, **k: client)
 
     result = runner.invoke(
         app, ["reason", DRAFT1, DRAFT2, "--key", KEY, "--no-elements"]
@@ -183,11 +183,11 @@ def test_the_run_budget_ceiling_is_enforced():
     Checked on the real client rather than through the CLI, because the fake
     carries its own budget and would prove nothing about the guard.
     """
-    from ripple.config import Settings
-    from ripple.llm import BudgetExceededError, ModelClient, RunBudget
+    from bluepages.config import Settings
+    from bluepages.llm import BudgetExceededError, ModelClient, RunBudget
 
     client = ModelClient(
-        settings=Settings(ripple_cache_llm=False), budget=RunBudget(max_calls=2)
+        settings=Settings(bluepages_cache_llm=False), budget=RunBudget(max_calls=2)
     )
     client.budget.calls_made = 2
 
@@ -200,15 +200,15 @@ def test_max_calls_option_reaches_the_budget(monkeypatch):
     """--max-calls has to land on the budget, or the flag is decoration."""
     seen: dict[str, int] = {}
 
-    from ripple.llm import RunBudget as RealBudget
+    from bluepages.llm import RunBudget as RealBudget
 
     def spy(max_calls: int, **kwargs):
         seen["max_calls"] = max_calls
         return RealBudget(max_calls=max_calls, **kwargs)
 
-    monkeypatch.setattr("ripple.llm.RunBudget", spy)
+    monkeypatch.setattr("bluepages.llm.RunBudget", spy)
     monkeypatch.setattr(
-        "ripple.llm.ModelClient", lambda *a, **k: ScriptedClient(default={"findings": []})
+        "bluepages.llm.ModelClient", lambda *a, **k: ScriptedClient(default={"findings": []})
     )
 
     runner.invoke(app, ["reason", DRAFT1, DRAFT2, "--no-elements", "--max-calls", "7"])

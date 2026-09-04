@@ -25,10 +25,10 @@ from enum import Enum
 
 from pydantic import BaseModel, Field
 
-from ripple.events import EventKind, EventStream, NullStream
-from ripple.llm import ModelClient
-from ripple.llm.structured import SchemaError, parse_as
-from ripple.model import Scene, Screenplay
+from bluepages.events import EventKind, EventStream, NullStream
+from bluepages.llm import ModelClient
+from bluepages.llm.structured import SchemaError, parse_as
+from bluepages.model import Scene, Screenplay
 
 
 class ElementCategory(str, Enum):

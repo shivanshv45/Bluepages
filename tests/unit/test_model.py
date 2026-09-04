@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from ripple.model import (
+from bluepages.model import (
     InteriorExterior,
     SceneNumber,
     TimeOfDay,

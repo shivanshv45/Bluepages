@@ -31,8 +31,8 @@ import difflib
 from dataclasses import dataclass, field
 from enum import Enum
 
-from ripple.events import EventKind, EventStream, NullStream
-from ripple.model import Scene, Screenplay
+from bluepages.events import EventKind, EventStream, NullStream
+from bluepages.model import Scene, Screenplay
 
 
 class AlignmentKind(str, Enum):

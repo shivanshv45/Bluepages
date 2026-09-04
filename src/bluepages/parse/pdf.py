@@ -36,8 +36,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from ripple.events import EventKind, EventStream, NullStream
-from ripple.model.script import (
+from bluepages.events import EventKind, EventStream, NullStream
+from bluepages.model.script import (
     Element,
     ElementType,
     Scene,

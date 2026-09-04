@@ -8,10 +8,10 @@ site.
 
 from pathlib import Path
 
-from ripple.events import EventStream
-from ripple.model.script import Screenplay
-from ripple.parse.fdx import FdxParseError, parse_fdx, parse_fdx_string
-from ripple.parse.pdf import PdfParseError, parse_pdf
+from bluepages.events import EventStream
+from bluepages.model.script import Screenplay
+from bluepages.parse.fdx import FdxParseError, parse_fdx, parse_fdx_string
+from bluepages.parse.pdf import PdfParseError, parse_pdf
 
 
 class UnsupportedFormatError(Exception):

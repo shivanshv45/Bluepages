@@ -4,7 +4,7 @@ The shared representation every later layer reads. Parsers produce it; the diff,
 the agents, the database and the UI all consume it. This is the contract.
 """
 
-from ripple.model.script import (
+from bluepages.model.script import (
     Element,
     ElementType,
     InteriorExterior,

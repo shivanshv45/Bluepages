@@ -18,8 +18,8 @@ from pathlib import Path
 
 import pytest
 
-from ripple.parse import parse_fdx
-from ripple.testdata import (
+from bluepages.parse import parse_fdx
+from bluepages.testdata import (
     AnswerKey,
     ChangeKind,
     Department,
@@ -184,7 +184,7 @@ class TestJudgmentCases:
 
     def test_day_to_night_is_not_a_props_change(self, small_key, small_pair):
         """A scheduling change and a possible location re-quote. Not props."""
-        from ripple.model import TimeOfDay
+        from bluepages.model import TimeOfDay
 
         before, after = small_pair
         change = next(c for c in small_key.changes if c.id == "day-to-night")
@@ -204,7 +204,7 @@ class TestJudgmentCases:
 
     def test_inserted_scene_sits_between_neighbours(self, small_pair):
         """34A-style: it must sort between 5 and 6, not after 59."""
-        from ripple.model import SceneNumber
+        from bluepages.model import SceneNumber
 
         _, after = small_pair
         numbers = [s.number for s in after.scenes if s.number]

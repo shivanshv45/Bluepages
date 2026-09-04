@@ -15,11 +15,11 @@ from pathlib import Path
 
 import pytest
 
-from ripple.diff import align, diff_drafts
-from ripple.events import CollectingStream, EventKind
-from ripple.parse import parse_fdx
-from ripple.semantic.reasoning import Finding, SemanticResult, reason_about_diff
-from ripple.testdata import ChangeKind, Department
+from bluepages.diff import align, diff_drafts
+from bluepages.events import CollectingStream, EventKind
+from bluepages.parse import parse_fdx
+from bluepages.semantic.reasoning import Finding, SemanticResult, reason_about_diff
+from bluepages.testdata import ChangeKind, Department
 from tests.unit.fakes import EMPTY_FINDINGS, ScriptedClient, findings_answer
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
@@ -261,7 +261,7 @@ def test_department_counts(mechanical):
 
 def test_extracted_elements_reach_the_prompt(mechanical):
     """Layer 3.3's output is evidence for Layer 3.4, not a separate report."""
-    from ripple.semantic.elements import (
+    from bluepages.semantic.elements import (
         DraftElements,
         ElementCategory,
         ExtractedElement,

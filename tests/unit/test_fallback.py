@@ -15,8 +15,8 @@ from __future__ import annotations
 import pytest
 from botocore.exceptions import ClientError
 
-from ripple.llm import Retryability, RunBudget, classify, is_retryable
-from ripple.llm.client import BudgetExceededError
+from bluepages.llm import Retryability, RunBudget, classify, is_retryable
+from bluepages.llm.client import BudgetExceededError
 
 
 def aws_error(code: str, status: int) -> ClientError:
@@ -127,7 +127,7 @@ class TestRunBudget:
 
     def test_budget_tracks_per_model_counts(self):
         """Which model answered has to be visible, not silent."""
-        from ripple.llm import Completion
+        from bluepages.llm import Completion
 
         budget = RunBudget(max_calls=10)
         budget.charge(
@@ -148,22 +148,22 @@ class TestChainOrder:
     """Fall back within Bedrock first; leave AWS only on provider failure."""
 
     def test_judgment_starts_at_sonnet(self):
-        from ripple.config import Settings
-        from ripple.llm import ModelClient
+        from bluepages.config import Settings
+        from bluepages.llm import ModelClient
 
         client = ModelClient(settings=Settings(groq_api_key=None, gemini_api_key=None))
         assert [r.name for r in client.chain(judgment=True)] == ["sonnet-5", "haiku-4.5"]
 
     def test_bulk_starts_at_haiku(self):
-        from ripple.config import Settings
-        from ripple.llm import ModelClient
+        from bluepages.config import Settings
+        from bluepages.llm import ModelClient
 
         client = ModelClient(settings=Settings(groq_api_key=None, gemini_api_key=None))
         assert [r.name for r in client.chain(judgment=False)] == ["haiku-4.5", "sonnet-5"]
 
     def test_external_providers_come_last(self):
-        from ripple.config import Settings
-        from ripple.llm import ModelClient
+        from bluepages.config import Settings
+        from bluepages.llm import ModelClient
 
         client = ModelClient(settings=Settings(groq_api_key="k", gemini_api_key="k"))
         chain = [r.provider for r in client.chain(judgment=True)]
@@ -180,13 +180,13 @@ class TestChainBehaviour:
 
     @staticmethod
     def _settings():
-        from ripple.config import Settings
+        from bluepages.config import Settings
 
-        return Settings(groq_api_key=None, gemini_api_key=None, ripple_cache_llm=False)
+        return Settings(groq_api_key=None, gemini_api_key=None, bluepages_cache_llm=False)
 
     def test_throttling_falls_back_and_reports_which_model_answered(self):
-        from ripple.events import CollectingStream, EventKind
-        from ripple.llm import ModelClient, RunBudget
+        from bluepages.events import CollectingStream, EventKind
+        from bluepages.llm import ModelClient, RunBudget
 
         class ThrottleFirst(ModelClient):
             def _invoke(self, role, prompt, system, max_tokens, temperature):
@@ -206,8 +206,8 @@ class TestChainBehaviour:
 
     def test_schema_error_does_not_consume_the_chain(self):
         """One bad prompt must cost one provider, not three."""
-        from ripple.events import CollectingStream, EventKind
-        from ripple.llm import ModelClient, RunBudget
+        from bluepages.events import CollectingStream, EventKind
+        from bluepages.llm import ModelClient, RunBudget
 
         attempts = []
 
@@ -227,7 +227,7 @@ class TestChainBehaviour:
         assert events.count(EventKind.MODEL_FALLBACK) == 0
 
     def test_chain_exhaustion_reports_every_failure(self):
-        from ripple.llm import AllModelsFailedError, ModelClient, RunBudget
+        from bluepages.llm import AllModelsFailedError, ModelClient, RunBudget
 
         class AllDown(ModelClient):
             def _invoke(self, role, prompt, system, max_tokens, temperature):
@@ -240,7 +240,7 @@ class TestChainBehaviour:
 
     def test_max_tokens_is_never_unset(self):
         """CLAUDE.md: always set max_tokens. No code path may omit it."""
-        from ripple.llm import ModelClient, RunBudget
+        from bluepages.llm import ModelClient, RunBudget
 
         seen: dict[str, int] = {}
 

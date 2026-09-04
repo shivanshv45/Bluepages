@@ -44,3 +44,11 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/settings.json
+
+# Internal working docs. Not the artifact, and not tracked. README and LICENSE
+# stay in the repo: a public project needs both.
+PRD.md
+PLAN.md
+DECISIONS.md
+CHANGES.md
+CLAUDE.md

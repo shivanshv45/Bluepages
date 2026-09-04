@@ -62,12 +62,12 @@ class Settings(BaseSettings):
 
     # --- Cost guards --------------------------------------------------------
     # CLAUDE.md: never an unbounded loop, always max_tokens, cache while iterating.
-    ripple_max_tokens: int = Field(default=4096, gt=0, le=64000)
-    ripple_max_llm_calls_per_run: int = Field(default=400, gt=0)
-    ripple_cache_llm: bool = Field(default=True)
-    ripple_log_level: str = Field(default="INFO")
+    bluepages_max_tokens: int = Field(default=4096, gt=0, le=64000)
+    bluepages_max_llm_calls_per_run: int = Field(default=400, gt=0)
+    bluepages_cache_llm: bool = Field(default=True)
+    bluepages_log_level: str = Field(default="INFO")
 
-    @field_validator("ripple_log_level")
+    @field_validator("bluepages_log_level")
     @classmethod
     def _upper(cls, v: str) -> str:
         return v.upper()

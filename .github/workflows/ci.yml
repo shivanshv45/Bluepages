@@ -37,4 +37,4 @@ jobs:
       - name: Test
         # No AWS credentials in CI: `live` tests are deselected, so nothing here
         # can spend money.
-        run: pytest -q -m "not live" --cov=ripple --cov-report=term-missing
+        run: pytest -q -m "not live" --cov=bluepages --cov-report=term-missing

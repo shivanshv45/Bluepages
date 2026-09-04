@@ -17,8 +17,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from ripple.model import Screenplay
-from ripple.parse import parse_fdx
+from bluepages.model import Screenplay
+from bluepages.parse import parse_fdx
 
 
 class ChangeKind(str, Enum):

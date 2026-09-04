@@ -12,9 +12,9 @@ from pathlib import Path
 
 import pytest
 
-from ripple.semantic.reasoning import Finding, SemanticResult
-from ripple.semantic.scoring import score
-from ripple.testdata import ChangeKind, Department, load_answer_key
+from bluepages.semantic.reasoning import Finding, SemanticResult
+from bluepages.semantic.scoring import score
+from bluepages.testdata import ChangeKind, Department, load_answer_key
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
 

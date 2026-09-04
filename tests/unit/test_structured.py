@@ -10,8 +10,8 @@ from __future__ import annotations
 import pytest
 from pydantic import BaseModel
 
-from ripple.llm.fallback import is_retryable
-from ripple.llm.structured import SchemaError, extract_json, parse_as, schema_hint
+from bluepages.llm.fallback import is_retryable
+from bluepages.llm.structured import SchemaError, extract_json, parse_as, schema_hint
 
 
 class Thing(BaseModel):

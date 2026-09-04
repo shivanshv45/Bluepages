@@ -15,17 +15,17 @@ from pathlib import Path
 
 import pytest
 
-from ripple.diff import (
+from bluepages.diff import (
     AlignmentKind,
     AlignmentMethod,
     SpanKind,
     align,
     diff_drafts,
 )
-from ripple.events import CollectingStream, EventKind
-from ripple.model import ElementType
-from ripple.parse import parse_fdx
-from ripple.testdata import load_answer_key
+from bluepages.events import CollectingStream, EventKind
+from bluepages.model import ElementType
+from bluepages.parse import parse_fdx
+from bluepages.testdata import load_answer_key
 
 FIXTURES = Path(__file__).parent.parent / "fixtures"
 
