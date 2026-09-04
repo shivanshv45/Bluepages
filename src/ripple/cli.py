@@ -243,6 +243,382 @@ def _check_bedrock(settings, problems: list[str]) -> None:
 
 
 @app.command()
+def diff(
+    before: Annotated[Path, typer.Argument(help="The earlier draft")],
+    after: Annotated[Path, typer.Argument(help="The newer draft")],
+    verbose: Annotated[bool, typer.Option("-v", "--verbose", help="Show progress events")] = False,
+    key_path: Annotated[
+        Path | None, typer.Option("--key", help="Score against an answer key")
+    ] = None,
+) -> None:
+    """Diff two drafts: align scenes, then diff inside each aligned pair.
+
+    The mechanical layer only. It reports what changed, not what the changes
+    mean; the semantic pass is Layer 3.4 and needs Bedrock.
+    """
+    from ripple.diff import align, diff_drafts
+    from ripple.parse import parse_script
+
+    stream = RichConsoleStream(verbose=verbose)
+    old_draft = parse_script(before, stream=stream)
+    new_draft = parse_script(after, stream=stream)
+
+    alignment = align(old_draft, new_draft, stream=stream)
+    result = diff_drafts(alignment, stream=stream)
+
+    console.print()
+    _print_diff(alignment, result)
+
+    if key_path is not None:
+        _score_against_key(key_path, alignment, result)
+
+
+def _print_diff(alignment, result) -> None:
+    from ripple.diff import AlignmentKind
+
+    summary = alignment.summary()
+    table = Table(title="alignment", show_header=False, title_justify="left")
+    table.add_column(style="dim")
+    table.add_column()
+    degraded = "  [yellow](degraded)[/yellow]" if summary["degraded"] else ""
+    table.add_row("method", f"{summary['method']}{degraded}")
+    table.add_row(
+        "matched",
+        f"{summary['matched']}  ({summary['changed']} changed, "
+        f"{summary['unchanged']} identical)",
+    )
+    table.add_row("inserted", str(summary["inserted"]))
+    table.add_row("omitted", str(summary["omitted"]))
+    if summary["removed"]:
+        table.add_row(
+            "removed",
+            f"[yellow]{summary['removed']}  (gone without an OMITTED marker)[/yellow]",
+        )
+    table.add_row("moved", str(summary["moved"]))
+    console.print(table)
+
+    for pair in alignment.of_kind(AlignmentKind.OMITTED):
+        console.print(f"\n[bold]scene {pair.number}[/bold]  [red]OMITTED[/red]")
+        if pair.before:
+            console.print(f"    was: {pair.before.heading}")
+
+    for pair in alignment.of_kind(AlignmentKind.INSERTED):
+        console.print(f"\n[bold]scene {pair.number}[/bold]  [green]INSERTED[/green]")
+        if pair.after:
+            console.print(f"    {pair.after.heading}")
+
+    for scene in result.scenes:
+        console.print(f"\n[bold]scene {scene.number}[/bold]")
+        pair = scene.pair
+        if scene.heading_changed and pair.before and pair.after:
+            console.print(f"    [magenta]heading[/magenta]  {pair.before.heading}")
+            console.print(f"             {pair.after.heading}")
+        for span in scene.spans:
+            console.print(f"    [dim]{span.kind.value} {span.element_type.value}[/dim]")
+            if span.before:
+                console.print(f"      [red]-[/red] {span.before.text}")
+            if span.after:
+                console.print(f"      [green]+[/green] {span.after.text}")
+
+    if result.relocation_candidates:
+        console.print(
+            "\n[bold]possible relocations[/bold] "
+            "[dim](for the semantic layer to judge)[/dim]"
+        )
+        for candidate in result.relocation_candidates:
+            console.print(
+                f"    {candidate.phrase!r}  "
+                f"scene {candidate.from_scene} -> {candidate.to_scene}"
+            )
+
+
+def _score_against_key(key_path: Path, alignment, result) -> None:
+    """Compare what the diff found against the labelled ground truth."""
+    from ripple.diff import AlignmentKind
+    from ripple.testdata import load_answer_key
+
+    answer_key = load_answer_key(key_path)
+    expected = answer_key.scenes_touched()
+    found = (
+        {s.number for s in result.scenes}
+        | {p.number for p in alignment.of_kind(AlignmentKind.OMITTED)}
+        | {p.number for p in alignment.of_kind(AlignmentKind.INSERTED)}
+    )
+    missed = sorted(expected - found)
+    spurious = sorted(found - expected)
+
+    console.print("\n[bold]scored against the answer key[/bold]")
+    console.print(f"    expected {len(expected)}: {', '.join(sorted(expected))}")
+    console.print(f"    found    {len(found)}: {', '.join(sorted(found))}")
+    if missed:
+        console.print(f"    [red]missed: {', '.join(missed)}[/red]")
+    if spurious:
+        console.print(f"    [yellow]false positives: {', '.join(spurious)}[/yellow]")
+    if not missed and not spurious:
+        console.print("    [green]every labelled scene found, nothing spurious[/green]")
+    console.print()
+
+
+@app.command()
+def key(
+    path: Annotated[Path, typer.Argument(help="Answer key JSON")],
+    fixtures: Annotated[
+        Path | None, typer.Option("--fixtures", help="Where the drafts live")
+    ] = None,
+) -> None:
+    """Show a Layer 2 answer key and check it against its drafts.
+
+    A key that has drifted from its fixtures is worse than no key: it reports
+    success against scenes that no longer exist. This validates every claim.
+    """
+    from ripple.testdata import load_answer_key, summarise, validate
+
+    try:
+        answer_key = load_answer_key(path)
+    except (FileNotFoundError, ValueError) as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(1) from exc
+
+    summary = summarise(answer_key)
+    table = Table(
+        title=f"answer key: {summary['pair']}", show_header=False, title_justify="left"
+    )
+    table.add_column(style="dim")
+    table.add_column()
+    table.add_row("drafts", summary["drafts"])
+    table.add_row("changes", str(summary["changes"]))
+    table.add_row("by kind", ", ".join(f"{k}={v}" for k, v in summary["by_kind"].items()))
+    table.add_row(
+        "by dept", ", ".join(f"{k}={v}" for k, v in summary["by_department"].items())
+    )
+    table.add_row("scenes touched", ", ".join(summary["scenes_touched"]))
+    console.print(table)
+
+    for change in answer_key.changes:
+        where = f"{change.from_scene or '-'} -> {change.to_scene or '-'}"
+        console.print(
+            f"  [bold]{change.id}[/bold]  [dim]{change.kind.value}[/dim]  {where}"
+        )
+        console.print(f"      {change.summary}")
+
+    problems = validate(answer_key, fixtures or path.parent)
+    if problems:
+        console.print(f"\n[bold red]{len(problems)} problems:[/bold red]")
+        for problem in problems:
+            console.print(f"  - {problem}")
+        raise typer.Exit(1)
+    console.print("\n[bold green]Key validates against its drafts.[/bold green]\n")
+
+
+@app.command()
+def reason(
+    before: Annotated[Path, typer.Argument(help="The earlier draft")],
+    after: Annotated[Path, typer.Argument(help="The newer draft")],
+    key_path: Annotated[
+        Path | None, typer.Option("--key", help="Score against an answer key")
+    ] = None,
+    verbose: Annotated[bool, typer.Option("-v", "--verbose", help="Show progress events")] = False,
+    skip_elements: Annotated[
+        bool,
+        typer.Option("--no-elements", help="Skip Layer 3.3 extraction (fewer calls)"),
+    ] = False,
+    max_calls: Annotated[
+        int | None, typer.Option("--max-calls", help="Ceiling for this run")
+    ] = None,
+    json_out: Annotated[
+        Path | None, typer.Option("--json", help="Write the findings here")
+    ] = None,
+) -> None:
+    """The full pipeline: parse, align, diff, extract elements, reason.
+
+    This is Layers 3.3 and 3.4 and it costs money. Every call is bounded by the
+    run budget and cached on disk, so re-running on an unchanged pair is free.
+    """
+    from ripple.diff import align, diff_drafts
+    from ripple.llm import ModelClient, RunBudget
+    from ripple.parse import parse_script
+    from ripple.semantic import extract_draft, reason_about_diff
+
+    settings = get_settings()
+    stream = RichConsoleStream(verbose=verbose)
+    budget = RunBudget(
+        max_calls=max_calls or settings.ripple_max_llm_calls_per_run
+    )
+    client = ModelClient(settings=settings, stream=stream, budget=budget)
+
+    old_draft = parse_script(before, stream=stream)
+    new_draft = parse_script(after, stream=stream)
+    alignment = align(old_draft, new_draft, stream=stream)
+    mechanical = diff_drafts(alignment, stream=stream)
+
+    # Extraction is scoped to the scenes that changed. Running it over an
+    # unchanged 120-scene draft is 120 calls to learn nothing new.
+    elements = None
+    if not skip_elements:
+        touched = sorted(_scenes_touched(alignment, mechanical))
+        elements = extract_draft(new_draft, client, stream=stream, scenes=touched)
+
+    result = reason_about_diff(mechanical, client, elements=elements, stream=stream)
+
+    console.print()
+    _print_findings(result, elements)
+
+    spend = budget.summary()
+    console.print(
+        f"\n[dim]{spend['calls']} model calls, "
+        f"{spend['input_tokens'] + spend['output_tokens']} tokens, "
+        f"{', '.join(f'{k}={v}' for k, v in spend['by_model'].items()) or 'all cached'}[/dim]"
+    )
+
+    if json_out is not None:
+        json_out.write_text(result.model_dump_json(indent=2), encoding="utf-8")
+        console.print(f"[dim]findings written to {json_out}[/dim]")
+
+    if key_path is not None:
+        card = _score_semantic(key_path, result)
+        if not card.passed:
+            raise typer.Exit(1)
+
+
+def _scenes_touched(alignment, mechanical) -> set[str]:
+    """Scene numbers worth spending an extraction call on."""
+    from ripple.diff import AlignmentKind
+
+    return (
+        {s.number for s in mechanical.scenes}
+        | {p.number for p in alignment.of_kind(AlignmentKind.INSERTED)}
+        | {c.to_scene for c in mechanical.relocation_candidates}
+        | {c.from_scene for c in mechanical.relocation_candidates}
+    )
+
+
+def _print_findings(result, elements) -> None:
+    """The AD's screen, in the terminal."""
+    if elements is not None:
+        summary = elements.summary()
+        console.print(
+            f"[bold]elements[/bold]  {summary['elements']} found "
+            f"({summary['distinct']} distinct) across {summary['scenes']} scenes"
+            + (f", [yellow]{summary['branded']} branded[/yellow]" if summary["branded"] else "")
+        )
+
+    if not result.findings:
+        console.print("\n[yellow]no findings[/yellow]")
+        return
+
+    console.print(f"\n[bold]{len(result.findings)} findings[/bold]\n")
+    for finding in result.findings:
+        where = (
+            f"{finding.from_scene} -> {finding.scene}"
+            if finding.from_scene and finding.from_scene != finding.scene
+            else f"scene {finding.scene}"
+        )
+        flag = "  [yellow]uncertain[/yellow]" if finding.uncertain else ""
+        console.print(f"  [bold]{where}[/bold]  [dim]{finding.kind.value}[/dim]{flag}")
+        console.print(f"      {finding.summary}")
+        if finding.reasoning:
+            console.print(f"      [dim]{finding.reasoning}[/dim]")
+        routes = ", ".join(d.value for d in finding.departments) or "[red]unrouted[/red]"
+        risk = f"  risk: {finding.risk}" if finding.risk else ""
+        console.print(f"      [cyan]{routes}[/cyan]  [dim]{finding.confidence:.0%}{risk}[/dim]")
+        console.print()
+
+    counts = result.department_counts
+    if counts:
+        console.print(
+            "[bold]by department[/bold]  "
+            + "  ".join(f"{k} [bold]{v}[/bold]" for k, v in counts.items())
+        )
+    if result.fallbacks:
+        console.print(f"[yellow]{result.fallbacks} scenes answered via fallback[/yellow]")
+    if result.rejected:
+        console.print(
+            f"[dim]{len(result.rejected)} findings dropped for naming an unchanged scene[/dim]"
+        )
+
+
+def _score_semantic(key_path: Path, result):
+    """Score the semantic run against the labelled ground truth."""
+    from ripple.semantic import score
+    from ripple.testdata import load_answer_key
+
+    answer_key = load_answer_key(key_path)
+    card = score(answer_key, result)
+
+    console.print("\n[bold]scored against the answer key[/bold]\n")
+    table = Table(show_header=True, header_style="dim")
+    table.add_column("change")
+    table.add_column("found")
+    table.add_column("kind")
+    table.add_column("departments")
+    table.add_column("forbidden")
+
+    for entry in card.scores:
+        found = "[green]yes[/green]" if entry.found else "[red]NO[/red]"
+        if not entry.found:
+            kind = "[dim]-[/dim]"
+        elif entry.kind_correct:
+            kind = f"[green]{entry.expected_kind.value}[/green]"
+        else:
+            kind = (
+                f"[red]{entry.found_kind.value if entry.found_kind else '?'}[/red] "
+                f"[dim]want {entry.expected_kind.value}[/dim]"
+            )
+        if entry.departments_missed:
+            depts = "[red]missed " + ",".join(d.value for d in entry.departments_missed) + "[/red]"
+        elif entry.found:
+            depts = "[green]all[/green]"
+        else:
+            depts = "[dim]-[/dim]"
+        forbidden = (
+            "[red]" + "; ".join(entry.said_forbidden) + "[/red]"
+            if entry.said_forbidden
+            else ""
+        )
+        table.add_row(entry.change_id, found, kind, depts, forbidden)
+    console.print(table)
+
+    summary = card.summary()
+    console.print(
+        f"\n  recall     {summary['found']}/{summary['changes']}"
+        f"   [dim]labelled changes found[/dim]"
+    )
+    console.print(
+        f"  accuracy   {summary['fully_correct']}/{summary['changes']}"
+        f"   [dim]found, judged right, nothing forbidden said[/dim]"
+    )
+    console.print(
+        f"  routing    {summary['department_recall']:.0%}"
+        f"   [dim]of the departments the key expects[/dim]"
+    )
+    if card.forbidden_said:
+        console.print(
+            f"  [bold red]{card.forbidden_said} forbidden phrases said[/bold red]"
+            "   [dim]the expensive errors[/dim]"
+        )
+    if card.findings_in_unchanged_scenes:
+        console.print(
+            f"  [bold red]{len(card.findings_in_unchanged_scenes)} findings in scenes "
+            "the key calls unchanged[/bold red]"
+        )
+        for note in card.findings_in_unchanged_scenes:
+            console.print(f"      [red]{note}[/red]")
+    if card.unmatched_findings:
+        console.print(
+            f"\n  [dim]{len(card.unmatched_findings)} findings the key does not label "
+            "(not penalised, read them):[/dim]"
+        )
+        for note in card.unmatched_findings:
+            console.print(f"      [dim]{note}[/dim]")
+
+    if card.passed:
+        console.print("\n[bold green]PASS[/bold green]  every labelled change judged correctly\n")
+    else:
+        console.print("\n[bold red]FAIL[/bold red]  see above\n")
+    return card
+
+
+@app.command()
 def models() -> None:
     """List the Anthropic models Bedrock offers in the configured region.
 

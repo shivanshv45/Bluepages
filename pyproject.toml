@@ -74,7 +74,9 @@ ignore = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
-addopts = "-q --strict-markers"
+# `-m "not live"` is what actually deselects the paid tests. Without it the
+# live suite runs on every plain `pytest` the moment credentials exist.
+addopts = "-q --strict-markers -m 'not live'"
 markers = [
     "live: hits a real model provider; costs money. Deselected by default.",
 ]

@@ -24,7 +24,10 @@ See [PRD.md](PRD.md) for the product, [PLAN.md](PLAN.md) for build order, and
 | 1.2 Script model | Done |
 | 3.6 Progress events | Done, built in alongside |
 | 1.3 PDF parser | Done, margins calibrated per document |
-| 2 Test data | Next |
+| 2 Test data | Done, 2 pairs with a validated answer key |
+| 3.1 Scene alignment | Done |
+| 3.2 Mechanical diff | Done, scored against the key |
+| 3.3 / 3.4 Model passes | Next, needs Bedrock |
 
 ---
 
@@ -67,6 +70,9 @@ ripple parse script.pdf              # tier 2: coordinate-driven
 ripple parse script.fdx -o out.json  # write it to a file
 ripple parse script.fdx --stats      # summary instead of full JSON
 ripple parse script.fdx -v           # show per-scene progress events
+ripple key tests/fixtures/small-answer-key.json   # show and validate a key
+ripple diff old.fdx new.fdx          # align and diff two drafts
+ripple diff old.fdx new.fdx --key answer-key.json   # and score the result
 ```
 
 ## Layout

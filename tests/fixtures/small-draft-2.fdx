@@ -25,84 +25,90 @@
     </Paragraph>
     <Paragraph Number="2" Type="Scene Heading">
       <SceneProperties Length="6/8" Page="1" Title="">
-        <Summary>Int. Farmhouse Kitchen - Day</Summary>
+        <Summary>Int. Farmhouse Kitchen - Night</Summary>
       </SceneProperties>
-      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="0" Size="12" Style="">INT. FARMHOUSE KITCHEN - DAY</Text>
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">INT. FARMHOUSE KITCHEN - NIGHT</Text>
     </Paragraph>
     <Paragraph Type="Action">
-      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="0" Size="12" Style="">MAE VANCE, 30s, sorts a stack of unopened mail at the table.</Text>
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">MAE VANCE, 30s, sorts a stack of unopened mail at the table.</Text>
     </Paragraph>
     <Paragraph Type="Action">
-      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="0" Size="12" Style="">She wears her father's canvas work jacket, sleeves rolled twice.</Text>
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">She wears her father's canvas work jacket, sleeves rolled twice.</Text>
     </Paragraph>
     <Paragraph Type="Character">
-      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="0" Size="12" Style="">MAE</Text>
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">MAE</Text>
     </Paragraph>
     <Paragraph Type="Dialogue">
-      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="0" Size="12" Style="">You've been letting these pile up since March.</Text>
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">You've been letting these pile up since March.</Text>
     </Paragraph>
     <Paragraph Type="Character">
-      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="0" Size="12" Style="">HARLAN</Text>
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">HARLAN</Text>
     </Paragraph>
     <Paragraph Type="Parenthetical">
-      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="0" Size="12" Style="">(not looking up)</Text>
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">(not looking up)</Text>
     </Paragraph>
     <Paragraph Type="Dialogue">
-      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="0" Size="12" Style="">Nothing in there I want to read.</Text>
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">Nothing in there I want to read.</Text>
     </Paragraph>
     <Paragraph Number="3" Type="Scene Heading">
       <SceneProperties Length="6/8" Page="2" Title="">
         <Summary>Int. Harlan'S Study - Day</Summary>
       </SceneProperties>
-      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="0" Size="12" Style="">INT. HARLAN'S STUDY - DAY</Text>
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">INT. HARLAN'S STUDY - DAY</Text>
     </Paragraph>
     <Paragraph Type="Action">
-      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="0" Size="12" Style="">A brass letter opener lies on the desk beside a ledger.</Text>
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">A ledger lies open on the desk, columns filled in a careful hand.</Text>
     </Paragraph>
     <Paragraph Type="Action">
-      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="0" Size="12" Style="">Harlan picks it up, turns it over, sets it down again.</Text>
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">Harlan closes it without reading.</Text>
     </Paragraph>
     <Paragraph Type="Character">
-      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="0" Size="12" Style="">HARLAN</Text>
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">HARLAN</Text>
     </Paragraph>
     <Paragraph Type="Dialogue">
-      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="0" Size="12" Style="">Your mother gave me that. Nineteen eighty-four.</Text>
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">Your mother kept these. Nineteen eighty-four onward.</Text>
     </Paragraph>
     <Paragraph Number="4" Type="Scene Heading">
       <SceneProperties Length="6/8" Page="2" Title="">
         <Summary>Ext. Wheat Field - Day</Summary>
       </SceneProperties>
-      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="0" Size="12" Style="">EXT. WHEAT FIELD - DAY</Text>
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">EXT. WHEAT FIELD - DAY</Text>
     </Paragraph>
     <Paragraph Type="Action">
-      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="0" Size="12" Style="">Mae walks the fence line. The wheat is thin and going to seed.</Text>
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">Mae walks the fence line. The wheat is thin and going to seed.</Text>
     </Paragraph>
     <Paragraph Type="Action">
-      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="0" Size="12" Style="">A JANITOR from the county office waits by the gate, clipboard in hand.</Text>
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">A CUSTODIAN from the county office waits by the gate, clipboard in hand.</Text>
     </Paragraph>
     <Paragraph Type="Character">
-      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="0" Size="12" Style="">JANITOR</Text>
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">CUSTODIAN</Text>
     </Paragraph>
     <Paragraph Type="Dialogue">
-      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="0" Size="12" Style="">They sent me to post the notice. I'm sorry about it.</Text>
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">They sent me to post the notice. I'm sorry about it.</Text>
     </Paragraph>
     <Paragraph Number="5" Type="Scene Heading">
       <SceneProperties Length="6/8" Page="3" Title="">
-        <Summary>Int. County Sheriff'S Office - Day</Summary>
+        <Summary>Omitted</Summary>
       </SceneProperties>
-      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="0" Size="12" Style="">INT. COUNTY SHERIFF'S OFFICE - DAY</Text>
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">OMITTED</Text>
+    </Paragraph>
+    <Paragraph Number="5A" Type="Scene Heading">
+      <SceneProperties Length="6/8" Page="3" Title="">
+        <Summary>Ext. County Office - Parking Lot - Day</Summary>
+      </SceneProperties>
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">EXT. COUNTY OFFICE - PARKING LOT - DAY</Text>
     </Paragraph>
     <Paragraph Type="Action">
-      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="0" Size="12" Style="">DEPUTY COLE, 40s, slides a manila envelope across the counter.</Text>
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">Deputy Cole waits by a county Ford Bronco, engine running.</Text>
     </Paragraph>
     <Paragraph Type="Action">
-      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="0" Size="12" Style="">Mae takes it without opening it.</Text>
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">He hands Mae the manila envelope through the window.</Text>
     </Paragraph>
     <Paragraph Type="Character">
-      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="0" Size="12" Style="">DEPUTY COLE</Text>
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">DEPUTY COLE</Text>
     </Paragraph>
     <Paragraph Type="Dialogue">
-      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="0" Size="12" Style="">Sixty days. After that it's out of my hands.</Text>
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">Sixty days. After that it's out of my hands.</Text>
     </Paragraph>
     <Paragraph Number="6" Type="Scene Heading">
       <SceneProperties Length="6/8" Page="3" Title="">
@@ -123,16 +129,22 @@
       <SceneProperties Length="6/8" Page="4" Title="">
         <Summary>Int. Farmhouse Kitchen - Night</Summary>
       </SceneProperties>
-      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="0" Size="12" Style="">INT. FARMHOUSE KITCHEN - NIGHT</Text>
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">INT. FARMHOUSE KITCHEN - NIGHT</Text>
     </Paragraph>
     <Paragraph Type="Action">
-      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="0" Size="12" Style="">Harlan hands her the envelope across the table.</Text>
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">The brass letter opener sits on the table where he left it.</Text>
+    </Paragraph>
+    <Paragraph Type="Action">
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">Harlan slides the envelope across the table to her.</Text>
+    </Paragraph>
+    <Paragraph Type="Action">
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">He puts on a pair of wire-rimmed reading glasses.</Text>
     </Paragraph>
     <Paragraph Type="Character">
-      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="0" Size="12" Style="">HARLAN</Text>
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">HARLAN</Text>
     </Paragraph>
     <Paragraph Type="Dialogue">
-      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="0" Size="12" Style="">Read it to me. My eyes are going.</Text>
+      <Text AdornmentStyle="0" Background="#FFFFFFFFFFFF" Color="#000000000000" Font="Courier Final Draft" RevisionID="2" Size="12" Style="">Read it to me. My eyes are going.</Text>
     </Paragraph>
     <Paragraph Number="8" Type="Scene Heading">
       <SceneProperties Length="6/8" Page="4" Title="">
@@ -156,7 +168,7 @@
     </Content>
   </TitlePage>
 
-  <Revisions ActiveSet="1" RevisionMode="Yes" RevisionsShown="All">
+  <Revisions ActiveSet="2" RevisionMode="Yes" RevisionsShown="All">
     <Revision Color="#00000000FFFF" FullRevision="No" ID="1" Mark="*" Name="Blue" PageColor="#FFFFFFFFFFFF" Style=""/>
     <Revision Color="#FFFF0000FFFF" FullRevision="No" ID="2" Mark="*" Name="Pink" PageColor="#FFFFFFFFFFFF" Style=""/>
     <Revision Color="#A0A0A0A00000" FullRevision="No" ID="3" Mark="*" Name="Yellow" PageColor="#FFFFFFFFFFFF" Style=""/>

@@ -77,15 +77,19 @@ class Event:
 
 
 class EventStream(Protocol):
-    """What every pipeline stage is handed."""
+    """What every pipeline stage is handed.
 
-    def emit(self, kind: EventKind, message: str, **data: Any) -> None: ...
+    `kind` and `message` are positional-only so that a caller may pass data
+    fields of the same name: an alignment summary legitimately contains both.
+    """
+
+    def emit(self, kind: EventKind, message: str, /, **data: Any) -> None: ...
 
 
 class NullStream:
     """Discards everything. The default, so no stage needs a None check."""
 
-    def emit(self, kind: EventKind, message: str, **data: Any) -> None:
+    def emit(self, kind: EventKind, message: str, /, **data: Any) -> None:
         return None
 
 
@@ -95,7 +99,7 @@ class CollectingStream:
     def __init__(self) -> None:
         self.events: list[Event] = []
 
-    def emit(self, kind: EventKind, message: str, **data: Any) -> None:
+    def emit(self, kind: EventKind, message: str, /, **data: Any) -> None:
         self.events.append(Event(kind=kind, message=message, data=data))
 
     def of_kind(self, kind: EventKind) -> list[Event]:
@@ -136,7 +140,7 @@ class RichConsoleStream:
         self.console = console
         self._t0 = time.time()
 
-    def emit(self, kind: EventKind, message: str, **data: Any) -> None:
+    def emit(self, kind: EventKind, message: str, /, **data: Any) -> None:
         if kind in self._NOISY and not self.verbose:
             return
         style = _STYLES.get(kind, "dim")
@@ -152,7 +156,7 @@ class JsonLinesStream:
     def __init__(self, fp: Any = None) -> None:
         self.fp = fp or sys.stdout
 
-    def emit(self, kind: EventKind, message: str, **data: Any) -> None:
+    def emit(self, kind: EventKind, message: str, /, **data: Any) -> None:
         self.fp.write(json.dumps(Event(kind=kind, message=message, data=data).to_dict()) + "\n")
         self.fp.flush()
 
@@ -163,6 +167,6 @@ class TeeStream:
     def __init__(self, *streams: EventStream) -> None:
         self.streams = streams
 
-    def emit(self, kind: EventKind, message: str, **data: Any) -> None:
+    def emit(self, kind: EventKind, message: str, /, **data: Any) -> None:
         for s in self.streams:
             s.emit(kind, message, **data)

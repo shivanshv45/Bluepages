@@ -1,0 +1,159 @@
+{
+  "pair": "feature",
+  "draft_from": "feature-pair-1.fdx",
+  "draft_to": "feature-pair-2.fdx",
+  "note": "The same eight labelled changes at feature scale. Every other scene is identical between the drafts, so anything reported outside this set is a false positive.",
+  "changes": [
+    {
+      "id": "prop-relocated",
+      "kind": "element_relocated",
+      "summary": "The brass letter opener moves from scene 3 to scene 7.",
+      "from_scene": "31",
+      "to_scene": "91",
+      "element": "brass letter opener",
+      "departments": [
+        "props"
+      ],
+      "judgment": "Same object relocated, not a cut and a new buy. Props needs the difference: a relocation is a continuity and set-dressing note, a new buy is a purchase order. The text supports identity: it is the same brass letter opener, and scene 7 says it sits 'where he left it'.",
+      "must_not_say": [
+        "letter opener cut",
+        "new letter opener required",
+        "purchase a letter opener"
+      ]
+    },
+    {
+      "id": "character-renamed",
+      "kind": "character_renamed",
+      "summary": "JANITOR is renamed CUSTODIAN.",
+      "from_scene": "46",
+      "to_scene": "46",
+      "from_name": "JANITOR",
+      "to_name": "CUSTODIAN",
+      "departments": [
+        "cast"
+      ],
+      "judgment": "A rename, not a new role. Same scene, same function, identical dialogue. Casting must not be told to fill a new part; the existing booking carries over under a new name.",
+      "must_not_say": [
+        "new role",
+        "cast a custodian",
+        "additional character"
+      ]
+    },
+    {
+      "id": "action-rewritten-no-prop-change",
+      "kind": "action_rewritten",
+      "summary": "'hands her the envelope' becomes 'slides the envelope across the table'.",
+      "from_scene": "91",
+      "to_scene": "91",
+      "departments": [
+        "ad"
+      ],
+      "judgment": "No props consequence: the envelope is unchanged and still one envelope. It is a different physical action and therefore a different camera setup, which is the AD's concern. This is the category a structural diff cannot resolve: the text changed, the kit did not.",
+      "must_not_say": [
+        "new prop",
+        "additional envelope",
+        "props affected"
+      ]
+    },
+    {
+      "id": "day-to-night",
+      "kind": "time_of_day_changed",
+      "summary": "Scene 2 flips DAY to NIGHT.",
+      "from_scene": "16",
+      "to_scene": "16",
+      "from_value": "DAY",
+      "to_value": "NIGHT",
+      "departments": [
+        "schedule",
+        "locations"
+      ],
+      "judgment": "Not a prop change at all. It is a scheduling change, and a possible location re-quote because a night shoot at a practical location is priced differently. Reporting this to props would be noise.",
+      "must_not_say": [
+        "prop",
+        "wardrobe change"
+      ]
+    },
+    {
+      "id": "scene-omitted",
+      "kind": "scene_omitted",
+      "summary": "Scene 5 is marked OMITTED.",
+      "from_scene": "61",
+      "to_scene": "61",
+      "departments": [
+        "schedule",
+        "locations",
+        "cast"
+      ],
+      "judgment": "The scene number survives, which is why alignment still works. The county sheriff's office interior is no longer needed, and its content is largely absorbed by the new scene 5A.",
+      "must_not_say": [
+        "scene deleted",
+        "scene 5 missing"
+      ]
+    },
+    {
+      "id": "scene-inserted",
+      "kind": "scene_inserted",
+      "summary": "Scene 5A is inserted between 5 and 6.",
+      "from_scene": null,
+      "to_scene": "61A",
+      "departments": [
+        "locations",
+        "transport",
+        "schedule",
+        "cast"
+      ],
+      "judgment": "A new exterior location (county office parking lot) and a picture vehicle. Transport is involved because the Bronco is a working vehicle in shot, not set dressing.",
+      "must_not_say": [
+        "scene 5A unchanged"
+      ]
+    },
+    {
+      "id": "prop-added",
+      "kind": "element_added",
+      "summary": "Wire-rimmed reading glasses are added in scene 7.",
+      "from_scene": null,
+      "to_scene": "91",
+      "element": "wire-rimmed reading glasses",
+      "departments": [
+        "props"
+      ],
+      "judgment": "A genuinely new item: it appears nowhere in draft 1. This is the contrast case for the letter opener, which looks similar to a diff but is not a new buy.",
+      "must_not_say": [
+        "glasses relocated",
+        "glasses moved"
+      ]
+    },
+    {
+      "id": "clearance-branded-vehicle",
+      "kind": "clearance_risk",
+      "summary": "A Ford Bronco is named in the new scene 5A.",
+      "from_scene": null,
+      "to_scene": "61A",
+      "element": "Ford Bronco",
+      "risk": "medium",
+      "departments": [
+        "clearance",
+        "transport"
+      ],
+      "judgment": "A named brand introduced by the revision. Caught at script stage it is a phone call; caught after the shoot it is a reshoot. Transport also needs it because it is a picture vehicle.",
+      "must_not_say": [
+        "no clearance risk",
+        "generic vehicle"
+      ]
+    }
+  ],
+  "unchanged_scenes": [
+    "1",
+    "106",
+    "76"
+  ],
+  "expected_department_counts": {
+    "props": 2,
+    "cast": 3,
+    "locations": 3,
+    "transport": 2,
+    "schedule": 3,
+    "clearance": 1,
+    "ad": 1
+  }
+}
