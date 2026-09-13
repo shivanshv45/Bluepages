@@ -37,7 +37,8 @@ export default function App() {
   const [searchParams, setSearchParams] = useSearchParams();
   const urlTitle = searchParams.get("title") ?? "";
   const urlScene = searchParams.get("scene") ?? "";
-  const shouldAutoRun = searchParams.get("run") === "1";
+  // ?run=<id> is a real run id: the drop uploaded before navigating here.
+  const urlRunId = searchParams.get("run") ?? "";
   const [productions, setProductions] = useState<ProductionRow[] | null>(null);
   const [title, setTitle] = useState<string>(urlTitle);
   const [production, setProduction] = useState<Production | null>(null);
@@ -147,22 +148,6 @@ export default function App() {
     setGraph(seedGraph(sizeRef.current.width, sizeRef.current.height));
   }, []);
 
-  const startSample = useCallback(async () => {
-    begin();
-    try {
-      const started = await api.startRun(
-        "tests/fixtures/small-draft-1.fdx",
-        "tests/fixtures/small-draft-2.fdx",
-        title || "The Farm",
-      );
-      setRunId(started.run_id);
-      if (!title) setTitle(started.production);
-    } catch (e) {
-      setError((e as Error).message);
-      setRun((state) => ({ ...state, status: "failed" }));
-    }
-  }, [title, begin]);
-
   const startUpload = useCallback(
     async (before: File | null, after: File, name: string) => {
       begin();
@@ -187,19 +172,23 @@ export default function App() {
       const detail = (e as CustomEvent<DraftDroppedDetail>).detail;
       if (!detail || detail.production !== title) return;
       if (run.status === "running") return;
-      startSample();
+      // Upload the file that was actually dropped. The sample pair lives in
+      // the repo, which the deployed server has no copy of, so running it
+      // here would 400 on a path that only exists on a developer's machine.
+      if (detail.file) startUpload(null, detail.file, detail.production);
     };
     window.addEventListener(DRAFT_DROPPED_EVENT, onDropped);
     return () => window.removeEventListener(DRAFT_DROPPED_EVENT, onDropped);
-  }, [title, run.status, startSample]);
+  }, [title, run.status, startUpload]);
 
   /* A drop that landed on a console that was not mounted yet cannot reach it
      with an event, since the page it fired on is gone by the time this one
-     loads. ?run=1 in the URL carries that intent across the navigation
-     instead. Consumed once: the flag is stripped from the URL immediately
-     so refreshing the page does not restart the run underneath the viewer. */
+     loads. A File cannot survive that navigation either, so the drop
+     uploads first and ?run=<id> carries the run it started. This attaches to
+     a run already in flight rather than starting a second one. Consumed once:
+     the id is stripped from the URL so a refresh does not re-attach. */
   useEffect(() => {
-    if (!shouldAutoRun || !urlTitle) return;
+    if (!urlRunId || !urlTitle) return;
     setSearchParams(
       (params) => {
         params.delete("run");
@@ -207,13 +196,10 @@ export default function App() {
       },
       { replace: true },
     );
-    startSample();
-    // startSample is intentionally left out: it closes over title, which is
-    // still catching up to urlTitle on the very first render, and re-firing
-    // this effect every time startSample's identity changes would run it more
-    // than once. shouldAutoRun/urlTitle only ever matter on that first load.
+    begin();
+    setRunId(urlRunId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shouldAutoRun, urlTitle]);
+  }, [urlRunId, urlTitle]);
 
   const recipients: Record<string, string> = {};
   for (const row of production?.recipients ?? []) {
@@ -268,7 +254,6 @@ export default function App() {
         title={title}
         scene={urlScene}
         onPick={setTitle}
-        onSample={startSample}
         onUpload={startUpload}
         onApprove={async () => {
           await api.approve(title);

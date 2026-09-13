@@ -45,7 +45,6 @@ export function Console({
   title,
   scene,
   onPick,
-  onSample,
   onUpload,
   onApprove,
   onSend,
@@ -64,7 +63,6 @@ export function Console({
   title: string;
   scene?: string;
   onPick: (t: string) => void;
-  onSample: () => void;
   onUpload: (before: File | null, after: File, production: string) => void;
   onApprove: () => void;
   onSend: () => void;
@@ -106,7 +104,6 @@ export function Console({
 
       <aside className="rail">
         <Ingest
-          onSample={onSample}
           onUpload={onUpload}
           running={running}
           title={title}
@@ -243,14 +240,12 @@ export function Console({
  * is one button next to it, not the only way in.
  */
 function Ingest({
-  onSample,
   onUpload,
   running,
   title,
   productions,
   onPick,
 }: {
-  onSample: () => void;
   onUpload: (before: File | null, after: File, production: string) => void;
   running: boolean;
   title: string;
@@ -313,14 +308,6 @@ function Ingest({
         disabled={!after || running}
       >
         {running ? "Running…" : "Run this revision"}
-      </button>
-
-      {/* Hidden for now: the drop flow (DropCapture -> App's ?run=1) starts
-          the same sample run automatically, so this manual trigger is
-          currently redundant. Left in place, not deleted, in case the manual
-          button is wanted back later. */}
-      <button className="btn wide" onClick={onSample} disabled={running} style={{ display: "none" }}>
-        Run the sample pair
       </button>
 
       {productions && productions.length > 0 && (

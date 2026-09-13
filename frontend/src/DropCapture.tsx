@@ -22,6 +22,10 @@ export interface DraftDroppedDetail {
   production: string;
   scene: string;
   filename: string;
+  // The dropped file itself. The console uploads it: /api/identify only reads
+  // the draft to work out which production it belongs to, it does not keep it,
+  // so without this the run has nothing to diff.
+  file: File;
 }
 
 type Phase = "idle" | "hover" | "reading" | "matched-production" | "matched-scene" | "unmatched";
@@ -108,16 +112,30 @@ export function DropCapture() {
         // the run in place. App.tsx is already mounted and listening.
         window.dispatchEvent(
           new CustomEvent<DraftDroppedDetail>(DRAFT_DROPPED_EVENT, {
-            detail: { production: result.production, scene: result.scene ?? "", filename: file.name },
+            detail: {
+              production: result.production,
+              scene: result.scene ?? "",
+              filename: file.name,
+              file,
+            },
           }),
         );
         setPhase("idle");
       } else {
-        // Navigating to a console that is not mounted yet, so an event
-        // dispatched now would fire into a page that no longer exists by the
-        // time the new one loads. ?run=1 carries that intent across instead.
+        // The console is not mounted yet, and a File cannot survive the
+        // navigation. So upload here and carry the run id instead: the run is
+        // already going server-side by the time the console loads, and it
+        // simply attaches to it.
+        let started;
+        try {
+          started = await api.uploadDrafts(null, file, result.production);
+        } catch {
+          setPhase("unmatched");
+          window.setTimeout(() => setPhase("idle"), 3000);
+          return;
+        }
         navigate(
-          `/dashboard?title=${encodeURIComponent(result.production)}&scene=${encodeURIComponent(result.scene ?? "")}&run=1`,
+          `/dashboard?title=${encodeURIComponent(result.production)}&scene=${encodeURIComponent(result.scene ?? "")}&run=${encodeURIComponent(started.run_id)}`,
         );
         setPhase("idle");
       }

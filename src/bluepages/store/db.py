@@ -76,7 +76,14 @@ class Database:
         if self.dsn is not None:
             import psycopg
 
-            self._conn = psycopg.connect(self.dsn)
+            # prepare_threshold=None disables server-side prepared statements.
+            # A transaction-mode pooler (Supabase's, on :6543) hands the next
+            # query to a different backend session, so a statement prepared on
+            # one connection is either missing or name-collides on the next:
+            # "prepared statement _pg3_0 already exists". Preparing is a
+            # throughput optimisation and these are one-shot reads, so there is
+            # nothing to lose by turning it off.
+            self._conn = psycopg.connect(self.dsn, prepare_threshold=None)
         else:
             target = str(self.path) if self.path else ":memory:"
             if self.path is not None:

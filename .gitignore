@@ -98,3 +98,9 @@ tests/fixtures/video/
 # part of the pushed project.
 submission/
 deploy/
+
+# Submission artifacts: app screenshots and the assembled PDF. Uploaded to the
+# submission site, not content the repo needs. The .svg diagrams the README and
+# ARCHITECTURE.md actually link are tracked; these renders of them are not.
+docs/diagrams/*.png
+docs/diagrams/*.pdf
