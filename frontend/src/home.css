@@ -1,0 +1,737 @@
+/* The home page.
+ *
+ * Dark, because the pages land after wrap and get read at night. The one
+ * flourish is the hero scope, which is the product's own scene sweep running
+ * rather than a picture of it. Everything else stays quiet so the scope reads.
+ */
+
+.home {
+  background: var(--ground);
+  color: var(--text);
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Grain sits over everything and catches no clicks. */
+.grain {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+}
+
+/* --- nav ----------------------------------------------------------------- */
+
+.home-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 16px 40px;
+  background: rgba(11, 13, 18, 0.82);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+
+.home-nav nav {
+  display: flex;
+  gap: 26px;
+  margin-left: 8px;
+}
+
+.home-nav nav a {
+  color: var(--text-2);
+  font-size: 13.5px;
+  text-decoration: none;
+  transition: color 140ms ease;
+}
+.home-nav nav a:hover {
+  color: var(--text);
+}
+
+.home-nav .btn-ghost {
+  margin-left: auto;
+}
+
+.home .wordmark {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  white-space: nowrap;
+}
+.home .wordmark span {
+  color: var(--blue);
+}
+
+/* --- buttons ------------------------------------------------------------- */
+
+.btn-solid,
+.btn-ghost {
+  appearance: none;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.btn-solid {
+  background: var(--blue);
+  border: 1px solid var(--blue);
+  color: #fff;
+}
+.btn-solid:hover {
+  background: #5d8bf5;
+  border-color: #5d8bf5;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--line-2);
+  color: var(--text);
+}
+.btn-ghost:hover {
+  border-color: var(--text-3);
+  background: var(--surface);
+}
+
+.home :focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* --- hero ---------------------------------------------------------------- */
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 56px;
+  align-items: center;
+  max-width: 1340px;
+  margin: 0 auto;
+  padding: 72px 40px 84px 40px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  margin-bottom: 26px;
+}
+
+.pip-live {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--blue);
+  box-shadow: 0 0 0 3px rgba(76, 125, 240, 0.16);
+  animation: breathe 2s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* The headline.
+ *
+ * Bebas is the condensed poster face a title card uses. It only works very
+ * large and very tight, which is exactly one job on this page.
+ */
+.hero h1 {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(44px, 4.5vw, 68px);
+  line-height: 0.96;
+  letter-spacing: 0.006em;
+  margin: 0 0 22px 0;
+  text-wrap: balance;
+}
+
+.hero h1 em {
+  font-style: normal;
+  color: var(--blue);
+}
+
+.lede {
+  font-size: 16.5px;
+  line-height: 1.62;
+  color: var(--text-2);
+  max-width: 52ch;
+  margin: 0 0 32px 0;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 40px;
+}
+
+.hero-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px;
+  margin: 0;
+  padding-top: 26px;
+  border-top: 1px solid var(--line);
+}
+.hero-stats div {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 4px;
+}
+.hero-stats dt {
+  font-size: 12px;
+  color: var(--text-3);
+}
+.hero-stats dd {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+/* --- the hero scope: the product running --------------------------------- */
+
+.scope {
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.scope-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--line);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+}
+.scope-bar .dim {
+  color: var(--text-3);
+}
+
+.scope-state {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--sans);
+  font-size: 12px;
+  letter-spacing: 0;
+  color: var(--text-2);
+}
+.scope-state::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--blue);
+}
+.scope-state.live::before {
+  animation: breathe 1.4s ease-in-out infinite;
+}
+.scope-state.done {
+  color: var(--green);
+}
+.scope-state.done::before {
+  background: var(--green);
+}
+
+.scope-sweep {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 5px;
+  padding: 18px 16px;
+}
+
+.scope-cell {
+  height: 58px;
+  border-radius: 3px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text-3);
+  font-family: var(--mono);
+  font-size: 12.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 260ms ease, border-color 260ms ease, color 260ms ease;
+}
+.scope-cell.waiting {
+  opacity: 0.4;
+}
+.scope-cell.seen {
+  background: var(--raised);
+  color: var(--text-2);
+}
+.scope-cell.changed {
+  background: var(--blue-dim);
+  border-color: var(--blue);
+  color: #9db9f7;
+}
+.scope-cell.inserted {
+  background: var(--pink-dim);
+  border-color: var(--pink);
+  color: #f2a0bd;
+}
+.scope-cell.omitted {
+  background: var(--red-dim);
+  border-color: var(--red);
+  color: #eda49b;
+  text-decoration: line-through;
+}
+
+/* The finding. Reserves its height so the panel never jumps when it lands. */
+.scope-finding {
+  margin: 0 16px 14px 16px;
+  padding: 14px 16px;
+  background: var(--blue-dim);
+  border: 1px solid rgba(76, 125, 240, 0.42);
+  border-radius: 5px;
+  min-height: 118px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+.scope-finding.in {
+  opacity: 1;
+  transform: none;
+}
+
+.scope-finding-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 9px;
+}
+.scope-finding-head .dim {
+  margin-left: auto;
+  color: #8fabe8;
+  font-size: 11px;
+}
+
+.scope-finding p {
+  margin: 0 0 6px 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.scope-why {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #9db9f7;
+}
+
+.scope-foot {
+  display: flex;
+  gap: 18px;
+  padding: 11px 16px;
+  border-top: 1px solid var(--line);
+  background: var(--surface-2);
+  font-size: 11px;
+  color: var(--text-2);
+}
+.scope-foot .dim {
+  margin-left: auto;
+  color: var(--text-3);
+}
+
+/* --- tags ---------------------------------------------------------------- */
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.tag-blue {
+  background: rgba(76, 125, 240, 0.16);
+  border-color: rgba(76, 125, 240, 0.4);
+  color: #9db9f7;
+}
+.tag-pink {
+  background: rgba(228, 86, 138, 0.14);
+  border-color: rgba(228, 86, 138, 0.38);
+  color: #f2a0bd;
+}
+.tag-red {
+  background: rgba(212, 87, 74, 0.15);
+  border-color: rgba(212, 87, 74, 0.4);
+  color: #eda49b;
+}
+
+/* --- bands --------------------------------------------------------------- */
+
+.band {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 88px 40px;
+  border-top: 1px solid var(--line);
+}
+
+.band-head {
+  max-width: 62ch;
+  margin-bottom: 44px;
+}
+
+.band-label {
+  display: block;
+  font-size: 11.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 16px;
+}
+
+.band h2 {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(32px, 3.6vw, 46px);
+  line-height: 1.02;
+  letter-spacing: 0.01em;
+  margin: 0 0 16px 0;
+  color: var(--text);
+  text-wrap: balance;
+}
+
+.band-head p {
+  margin: 0;
+  font-size: 15.5px;
+  line-height: 1.62;
+  color: var(--text-2);
+}
+
+/* --- the comparison ------------------------------------------------------ */
+
+.compare {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.compare-col {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  overflow: hidden;
+}
+/* Only the right column is lifted. The point of the section is that one of
+   these two is worth reading. */
+.compare-col.lit {
+  border-color: var(--line-2);
+  box-shadow: var(--shadow);
+}
+
+.compare-col header {
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+}
+
+.compare-tag {
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+.compare-col.lit .compare-tag {
+  color: var(--blue);
+}
+
+.diffs,
+.findings {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.diffs li {
+  padding: 13px 18px;
+  border-top: 1px solid var(--line);
+  font-size: 13.5px;
+  color: var(--text-3);
+}
+.diffs li:first-child {
+  border-top: 0;
+}
+.diffs li .mono {
+  color: var(--text-2);
+  margin-right: 10px;
+  font-size: 12.5px;
+}
+
+.findings li {
+  padding: 15px 18px;
+  border-top: 1px solid var(--line);
+}
+.findings li:first-child {
+  border-top: 0;
+}
+
+.finding-top {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 8px;
+}
+.finding-top .scene {
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.findings p {
+  margin: 0 0 5px 0;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.finding-why {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+
+.compare-verdict {
+  padding: 12px 18px;
+  border-top: 1px solid var(--line);
+  background: var(--surface-2);
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+.compare-verdict.flat {
+  color: var(--text-3);
+}
+
+/* --- department wall ------------------------------------------------------ */
+
+/* Hairlines per cell rather than a grid gap, so an incomplete final row does
+   not leave a bare strip. Same reasoning as the dashboard's agent lanes. */
+.dept-wall {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(238px, 1fr));
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  overflow: hidden;
+  background: var(--line);
+  gap: 1px;
+}
+
+.dept-card {
+  background: var(--surface);
+  padding: 18px;
+  min-height: 118px;
+}
+
+.dept-card h3 {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+.dept-card p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.52;
+  color: var(--text-2);
+}
+
+/* Tone marks the department the revision actually hit. Never colour alone:
+   the note itself says what happened. */
+.dept-card.blue h3 {
+  color: var(--blue);
+}
+.dept-card.red h3 {
+  color: var(--red);
+}
+.dept-card.green h3 {
+  color: var(--green);
+}
+.dept-card.quiet {
+  opacity: 0.52;
+}
+
+/* --- steps ---------------------------------------------------------------- */
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.steps li {
+  display: grid;
+  grid-template-columns: 62px 1fr;
+  gap: 20px;
+  padding: 20px 22px;
+  background: var(--surface);
+}
+
+.step-n {
+  font-size: 12px;
+  color: var(--text-3);
+  padding-top: 2px;
+}
+
+.steps h3 {
+  margin: 0 0 5px 0;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+.steps p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.56;
+  color: var(--text-2);
+  max-width: 68ch;
+}
+
+/* --- closer --------------------------------------------------------------- */
+
+.closer {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  flex-wrap: wrap;
+  margin-top: 40px;
+  padding: 34px;
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+}
+.closer h2 {
+  margin-bottom: 10px;
+}
+.closer p {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--text-2);
+  max-width: 58ch;
+}
+.closer .btn-solid {
+  margin-left: auto;
+  padding: 13px 26px;
+  font-size: 14px;
+}
+
+/* --- footer --------------------------------------------------------------- */
+
+.home-foot {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 40px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: baseline;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+.home-foot p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-3);
+  max-width: 62ch;
+}
+
+/* --- responsive ----------------------------------------------------------- */
+
+@media (max-width: 1080px) {
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 48px;
+    padding: 56px 24px 64px 24px;
+  }
+  .compare {
+    grid-template-columns: 1fr;
+  }
+  .band {
+    padding: 64px 24px;
+  }
+  .home-nav {
+    padding: 14px 24px;
+  }
+  .home-nav nav {
+    display: none;
+  }
+  .home-foot {
+    padding: 32px 24px;
+  }
+}
+
+@media (max-width: 640px) {
+  .scope-sweep {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  .hero-stats {
+    gap: 26px;
+  }
+  .steps li {
+    grid-template-columns: 40px 1fr;
+    gap: 14px;
+    padding: 16px;
+  }
+  .closer {
+    padding: 24px;
+  }
+  .closer .btn-solid {
+    margin-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home *,
+  .home *::before,
+  .home *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

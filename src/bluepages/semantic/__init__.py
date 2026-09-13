@@ -16,7 +16,9 @@ from bluepages.semantic.elements import (
     extract_scene,
 )
 from bluepages.semantic.reasoning import (
+    MAX_RIPPLES,
     Finding,
+    RippleQuestion,
     SemanticResult,
     reason_about_diff,
 )
@@ -24,11 +26,13 @@ from bluepages.semantic.scoring import ChangeScore, Scorecard, score
 
 __all__ = [
     "CATEGORY_DEPARTMENT",
+    "MAX_RIPPLES",
     "ChangeScore",
     "DraftElements",
     "ElementCategory",
     "ExtractedElement",
     "Finding",
+    "RippleQuestion",
     "SceneExtraction",
     "Scorecard",
     "SemanticResult",

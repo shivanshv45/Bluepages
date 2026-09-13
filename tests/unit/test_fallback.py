@@ -131,44 +131,102 @@ class TestRunBudget:
 
         budget = RunBudget(max_calls=10)
         budget.charge(
-            Completion(text="x", model_name="sonnet-5", model_id="m", provider="bedrock",
+            Completion(text="x", model_name="judgment", model_id="m", provider="bedrock",
                        input_tokens=100, output_tokens=50)
         )
         budget.charge(
-            Completion(text="y", model_name="haiku-4.5", model_id="m", provider="bedrock",
+            Completion(text="y", model_name="bulk", model_id="m", provider="bedrock",
                        via_fallback=True, input_tokens=10, output_tokens=5)
         )
         summary = budget.summary()
         assert summary["calls"] == 2
         assert summary["input_tokens"] == 110
-        assert summary["by_model"] == {"sonnet-5": 1, "haiku-4.5": 1}
+        assert summary["by_model"] == {"judgment": 1, "bulk": 1}
 
 
 class TestChainOrder:
     """Fall back within Bedrock first; leave AWS only on provider failure."""
 
-    def test_judgment_starts_at_sonnet(self):
+    def test_judgment_starts_at_the_judgment_model(self):
         from bluepages.config import Settings
         from bluepages.llm import ModelClient
 
-        client = ModelClient(settings=Settings(groq_api_key=None, gemini_api_key=None))
-        assert [r.name for r in client.chain(judgment=True)] == ["sonnet-5", "haiku-4.5"]
+        client = ModelClient(
+            settings=Settings(
+                groq_api_key=None,
+                gemini_api_key=None,
+                bluepages_chain_order="bedrock_first",
+            )
+        )
+        assert [r.name for r in client.chain(judgment=True)] == ["judgment", "bulk"]
 
-    def test_bulk_starts_at_haiku(self):
+    def test_bulk_starts_at_the_bulk_model(self):
         from bluepages.config import Settings
         from bluepages.llm import ModelClient
 
-        client = ModelClient(settings=Settings(groq_api_key=None, gemini_api_key=None))
-        assert [r.name for r in client.chain(judgment=False)] == ["haiku-4.5", "sonnet-5"]
+        client = ModelClient(
+            settings=Settings(
+                groq_api_key=None,
+                gemini_api_key=None,
+                bluepages_chain_order="bedrock_first",
+            )
+        )
+        assert [r.name for r in client.chain(judgment=False)] == ["bulk", "judgment"]
 
     def test_external_providers_come_last(self):
         from bluepages.config import Settings
         from bluepages.llm import ModelClient
 
-        client = ModelClient(settings=Settings(groq_api_key="k", gemini_api_key="k"))
+        client = ModelClient(
+            settings=Settings(
+                groq_api_key="k",
+                gemini_api_key="k",
+                bluepages_chain_order="bedrock_first",
+            )
+        )
         chain = [r.provider for r in client.chain(judgment=True)]
         assert chain[:2] == ["bedrock", "bedrock"]
         assert set(chain[2:]) == {"groq", "gemini"}
+
+    def test_fallback_first_puts_the_free_providers_ahead_of_bedrock(self):
+        """For a Bedrock account that is reachable but throttled to zero."""
+        from bluepages.config import Settings
+        from bluepages.llm import ModelClient
+
+        client = ModelClient(
+            settings=Settings(
+                groq_api_key="k",
+                gemini_api_key="k",
+                bluepages_chain_order="fallback_first",
+            )
+        )
+        chain = [r.provider for r in client.chain(judgment=True)]
+        assert chain[:2] == ["groq", "gemini"]
+        assert chain[2:] == ["bedrock", "bedrock"]
+
+    def test_fallback_first_keeps_the_judgment_model_leading_its_group(self):
+        """Reversing the groups must not reverse the roles inside them."""
+        from bluepages.config import Settings
+        from bluepages.llm import ModelClient
+
+        client = ModelClient(
+            settings=Settings(
+                groq_api_key=None,
+                gemini_api_key=None,
+                bluepages_chain_order="fallback_first",
+            )
+        )
+        assert [r.name for r in client.chain(judgment=True)] == ["judgment", "bulk"]
+        assert [r.name for r in client.chain(judgment=False)] == ["bulk", "judgment"]
+
+    def test_an_unknown_chain_order_is_rejected(self):
+        """A typo must fail loudly rather than silently keeping Bedrock first."""
+        import pytest
+
+        from bluepages.config import Settings
+
+        with pytest.raises(ValueError, match="chain order"):
+            Settings(bluepages_chain_order="groq-first")
 
 
 class TestChainBehaviour:
@@ -190,7 +248,7 @@ class TestChainBehaviour:
 
         class ThrottleFirst(ModelClient):
             def _invoke(self, role, prompt, system, max_tokens, temperature):
-                if role.name == "sonnet-5":
+                if role.name == "judgment":
                     raise aws_error("ThrottlingException", 429)
                 return "ready", {"inputTokens": 10, "outputTokens": 2}
 
@@ -200,7 +258,7 @@ class TestChainBehaviour:
         )
         result = client.complete("hi", judgment=True)
 
-        assert result.model_name == "haiku-4.5"
+        assert result.model_name == "bulk"
         assert result.via_fallback
         assert events.count(EventKind.MODEL_FALLBACK) == 1
 
@@ -251,3 +309,79 @@ class TestChainBehaviour:
 
         Capture(settings=self._settings(), budget=RunBudget(max_calls=3)).complete("hi")
         assert seen["max_tokens"] > 0
+
+
+class TestTruncatedResponse:
+    """An empty answer must never pass for "nothing to report".
+
+    A reasoning model spends max_tokens on hidden reasoning before writing
+    anything, so a tight ceiling returns finish_reason="length" with empty
+    content. Recording that as a valid completion means a scene silently
+    reports no changes, which is a real and common answer and so hides the
+    failure completely.
+    """
+
+    def test_it_is_fatal_not_retryable(self):
+        """The same over-long prompt truncates identically on every provider."""
+        from bluepages.llm import TruncatedResponseError
+
+        assert classify(TruncatedResponseError("no content")) is Retryability.FATAL
+
+    def test_an_empty_groq_answer_raises(self):
+        from bluepages.config import Settings
+        from bluepages.llm import ModelClient, ModelRole, RunBudget, TruncatedResponseError
+
+        class Empty:
+            class chat:
+                class completions:
+                    @staticmethod
+                    def create(**kwargs):
+                        message = type("M", (), {"content": "", "reasoning": "thinking"})()
+                        choice = type("C", (), {"message": message, "finish_reason": "length"})()
+                        usage = type("U", (), {"prompt_tokens": 78, "completion_tokens": 16})()
+                        return type("R", (), {"choices": [choice], "usage": usage})()
+
+        client = ModelClient(
+            settings=Settings(groq_api_key="k", bluepages_cache_llm=False),
+            budget=RunBudget(max_calls=3),
+        )
+        client._models["groq"] = Empty()
+
+        with pytest.raises(TruncatedResponseError, match="finish_reason"):
+            client._invoke_groq(
+                ModelRole("groq", "openai/gpt-oss-120b", "groq"),
+                prompt="hi",
+                system=None,
+                max_tokens=16,
+                temperature=0.0,
+            )
+
+    def test_a_whitespace_only_answer_also_raises(self):
+        """Stripping matters: " \n " is not an answer either."""
+        from bluepages.config import Settings
+        from bluepages.llm import ModelClient, ModelRole, RunBudget, TruncatedResponseError
+
+        class Blank:
+            class chat:
+                class completions:
+                    @staticmethod
+                    def create(**kwargs):
+                        message = type("M", (), {"content": "  \n  "})()
+                        choice = type("C", (), {"message": message, "finish_reason": "stop"})()
+                        usage = type("U", (), {"prompt_tokens": 5, "completion_tokens": 2})()
+                        return type("R", (), {"choices": [choice], "usage": usage})()
+
+        client = ModelClient(
+            settings=Settings(groq_api_key="k", bluepages_cache_llm=False),
+            budget=RunBudget(max_calls=3),
+        )
+        client._models["groq"] = Blank()
+
+        with pytest.raises(TruncatedResponseError):
+            client._invoke_groq(
+                ModelRole("groq", "m", "groq"),
+                prompt="hi",
+                system=None,
+                max_tokens=4096,
+                temperature=0.0,
+            )

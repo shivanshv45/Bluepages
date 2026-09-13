@@ -21,22 +21,27 @@ from bluepages.llm import Completion, RunBudget
 class ScriptedClient:
     """Replays canned answers, matched by a substring of the prompt.
 
-    Rules are checked in order, so a specific rule can precede a general one.
+    A rule's needle is a substring of the prompt, or a tuple of substrings that
+    must all appear. Rules are checked in order, so a specific rule can precede
+    a general one.
     A prompt matching nothing raises, because a silently empty answer would let
     a broken prompt-construction bug pass as "the model found nothing".
     """
 
     def __init__(
         self,
-        rules: list[tuple[str, Any]] | None = None,
+        rules: list[tuple[Any, Any]] | None = None,
         default: Any = None,
-        model_name: str = "haiku-4.5",
+        model_name: str = "bulk",
     ) -> None:
         self.rules = rules or []
         self.default = default
         self.model_name = model_name
         self.prompts: list[str] = []
         self.systems: list[str | None] = []
+        # What each call said it was for. Every model call should be able to
+        # say which scene or department it belongs to.
+        self.labels: list[str] = []
         self.judgment_calls = 0
         self.budget = RunBudget(max_calls=1000)
 
@@ -48,18 +53,25 @@ class ScriptedClient:
         max_tokens: int | None = None,
         temperature: float = 0.0,
         cache_key_extra: str = "",
+        label: str = "",
     ) -> Completion:
         # Every call must be bounded. If this ever fires, a caller has found a
         # path around the guard that exists to stop a runaway AWS bill.
         assert max_tokens is not None, "max_tokens must always be set"
         self.prompts.append(prompt)
+        self.labels.append(label)
         self.systems.append(system)
         if judgment:
             self.judgment_calls += 1
         self.budget.calls_made += 1
 
         for needle, answer in self.rules:
-            if needle in prompt:
+            # A tuple needle requires every part, so a rule can say "scene 7
+            # *and* the extraction prompt". Matching on the scene alone makes
+            # the reasoning and extraction rules collide, and the loser silently
+            # receives the wrong payload shape.
+            needles = needle if isinstance(needle, tuple) else (needle,)
+            if all(n in prompt for n in needles):
                 return self._completion(answer)
         if self.default is not None:
             return self._completion(self.default)

@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 975" width="1180" height="975" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#7d8aa0"/>
+    </marker>
+    <marker id="arb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2f6fd0"/>
+    </marker>
+  </defs>
+
+  <rect width="1180" height="975" fill="#ffffff"/>
+
+  <text x="40" y="46" font-size="23" font-weight="700" fill="#0f172a">Bluepages</text>
+  <text x="40" y="70" font-size="14" fill="#64748b">A new draft lands. The agent wakes, works out what changed, and tells each department what it means for them.</text>
+
+  <!-- TRIGGER -->
+  <text x="40" y="112" font-size="11" font-weight="700" fill="#94a3b8" letter-spacing="1.2">TRIGGER</text>
+  <rect x="40" y="124" width="250" height="62" rx="8" fill="#f1f5f9" stroke="#cbd5e1"/>
+  <text x="58" y="149" font-size="14" font-weight="600" fill="#0f172a">S3 upload</text>
+  <text x="58" y="170" font-size="12" fill="#64748b">productions/&lt;name&gt;/draft-N.fdx</text>
+
+  <rect x="330" y="124" width="250" height="62" rx="8" fill="#f1f5f9" stroke="#cbd5e1"/>
+  <text x="348" y="149" font-size="14" font-weight="600" fill="#0f172a">Lambda handler</text>
+  <text x="348" y="170" font-size="12" fill="#64748b">finds the previous draft itself</text>
+
+  <rect x="620" y="124" width="250" height="62" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-dasharray="5 3"/>
+  <text x="638" y="149" font-size="14" font-weight="600" fill="#0f172a">CLI / API</text>
+  <text x="638" y="170" font-size="12" fill="#64748b">same pipeline, started by hand</text>
+
+  <line x1="290" y1="155" x2="325" y2="155" stroke="#7d8aa0" stroke-width="1.6" marker-end="url(#ar)"/>
+  <line x1="455" y1="190" x2="455" y2="228" stroke="#7d8aa0" stroke-width="1.6" marker-end="url(#ar)"/>
+  <line x1="745" y1="190" x2="745" y2="228" stroke="#7d8aa0" stroke-width="1.6" marker-end="url(#ar)"/>
+
+  <!-- PIPELINE -->
+  <rect x="40" y="232" width="1100" height="232" rx="10" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="60" y="258" font-size="11" font-weight="700" fill="#94a3b8" letter-spacing="1.2">PIPELINE  ·  run_pipeline()</text>
+
+  <rect x="60" y="274" width="188" height="96" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="76" y="298" font-size="13" font-weight="600" fill="#0f172a">1 · Parse</text>
+  <text x="76" y="319" font-size="11.5" fill="#64748b">.fdx via lxml (tier 1)</text>
+  <text x="76" y="337" font-size="11.5" fill="#64748b">PDF via pdfplumber (tier 2)</text>
+  <text x="76" y="355" font-size="11.5" fill="#64748b">typed scenes and elements</text>
+
+  <rect x="268" y="274" width="188" height="96" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="284" y="298" font-size="13" font-weight="600" fill="#0f172a">2 · Align</text>
+  <text x="284" y="319" font-size="11.5" fill="#64748b">on scene @Number</text>
+  <text x="284" y="337" font-size="11.5" fill="#64748b">matched / omitted /</text>
+  <text x="284" y="355" font-size="11.5" fill="#64748b">inserted / removed</text>
+
+  <rect x="476" y="274" width="188" height="96" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="492" y="298" font-size="13" font-weight="600" fill="#0f172a">3 · Mechanical diff</text>
+  <text x="492" y="319" font-size="11.5" fill="#64748b">difflib within pairs</text>
+  <text x="492" y="337" font-size="11.5" fill="#64748b">change spans</text>
+  <text x="492" y="355" font-size="11.5" fill="#64748b">relocation candidates</text>
+
+  <rect x="684" y="274" width="188" height="96" rx="8" fill="#eef4fd" stroke="#2f6fd0"/>
+  <text x="700" y="298" font-size="13" font-weight="600" fill="#0f172a">4 · Extract</text>
+  <text x="700" y="319" font-size="11.5" fill="#2f6fd0" font-weight="600">bulk tier · per scene</text>
+  <text x="700" y="337" font-size="11.5" fill="#64748b">props, cast, vehicles,</text>
+  <text x="700" y="355" font-size="11.5" fill="#64748b">wardrobe, clearance</text>
+
+  <rect x="892" y="274" width="188" height="96" rx="8" fill="#eef4fd" stroke="#2f6fd0"/>
+  <text x="908" y="298" font-size="13" font-weight="600" fill="#0f172a">5 · Reason</text>
+  <text x="908" y="319" font-size="11.5" fill="#2f6fd0" font-weight="600">judgment tier · per change</text>
+  <text x="908" y="337" font-size="11.5" fill="#64748b">what the change means,</text>
+  <text x="908" y="355" font-size="11.5" fill="#64748b">and who needs to know</text>
+
+  <line x1="248" y1="322" x2="264" y2="322" stroke="#7d8aa0" stroke-width="1.6" marker-end="url(#ar)"/>
+  <line x1="456" y1="322" x2="472" y2="322" stroke="#7d8aa0" stroke-width="1.6" marker-end="url(#ar)"/>
+  <line x1="664" y1="322" x2="680" y2="322" stroke="#7d8aa0" stroke-width="1.6" marker-end="url(#ar)"/>
+  <line x1="872" y1="322" x2="888" y2="322" stroke="#7d8aa0" stroke-width="1.6" marker-end="url(#ar)"/>
+
+  <rect x="60" y="386" width="1020" height="58" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-dasharray="5 3"/>
+  <text x="76" y="409" font-size="12.5" font-weight="600" fill="#0f172a">Strands Agent drives every model call</text>
+  <text x="76" y="430" font-size="11.5" fill="#64748b">BedrockModel carries max_tokens · BeforeInvocationEvent hook enforces the per-run call ceiling · disk cache and the fallback chain sit above</text>
+
+  <line x1="590" y1="468" x2="590" y2="506" stroke="#7d8aa0" stroke-width="1.6" marker-end="url(#ar)"/>
+  <text x="602" y="493" font-size="11.5" fill="#64748b">findings</text>
+
+  <!-- FAN-OUT -->
+  <text x="40" y="530" font-size="11" font-weight="700" fill="#94a3b8" letter-spacing="1.2">ROUTING</text>
+  <rect x="40" y="542" width="530" height="128" rx="10" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="60" y="566" font-size="13" font-weight="600" fill="#0f172a">Department fan-out</text>
+  <text x="60" y="587" font-size="11.5" fill="#64748b">12 department agents in parallel, each rewriting the same</text>
+  <text x="60" y="605" font-size="11.5" fill="#64748b">finding into its own vocabulary: props, wardrobe, transport,</text>
+  <text x="60" y="623" font-size="11.5" fill="#64748b">locations, cast, art, SFX, stunts, schedule, clearance, AD</text>
+  <text x="60" y="650" font-size="11.5" fill="#64748b">+ clearance and schedule impact (no model calls)</text>
+
+  <rect x="610" y="542" width="530" height="128" rx="10" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="630" y="566" font-size="13" font-weight="600" fill="#0f172a">Consequences</text>
+  <text x="630" y="587" font-size="11.5" fill="#64748b">Ripples: verifies the model's own cross-scene hunches</text>
+  <text x="630" y="605" font-size="11.5" fill="#64748b">Sourcing: finds a real, priced, citable product for a new element</text>
+  <text x="630" y="623" font-size="11.5" fill="#64748b">Budget: what the proposal draws against the department's line</text>
+  <text x="630" y="650" font-size="11.5" fill="#64748b">Decision log: what the agent decided, and why</text>
+
+  <line x1="305" y1="674" x2="305" y2="712" stroke="#7d8aa0" stroke-width="1.6" marker-end="url(#ar)"/>
+  <line x1="875" y1="674" x2="875" y2="712" stroke="#7d8aa0" stroke-width="1.6" marker-end="url(#ar)"/>
+  <text x="317" y="699" font-size="11.5" fill="#64748b">persisted unapproved</text>
+
+  <!-- STORE -->
+  <rect x="40" y="716" width="1100" height="60" rx="8" fill="#f1f5f9" stroke="#cbd5e1"/>
+  <text x="60" y="740" font-size="13" font-weight="600" fill="#0f172a">Store</text>
+  <text x="60" y="761" font-size="11.5" fill="#64748b">Supabase Postgres, or local SQLite  ·  production → draft → scene → element, with element identity tracked across drafts</text>
+
+  <line x1="240" y1="780" x2="240" y2="818" stroke="#7d8aa0" stroke-width="1.6" marker-end="url(#ar)"/>
+  <line x1="590" y1="780" x2="590" y2="818" stroke="#7d8aa0" stroke-width="1.6" marker-end="url(#ar)"/>
+
+  <!-- SURFACES -->
+  <rect x="40" y="822" width="400" height="72" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="58" y="846" font-size="13" font-weight="600" fill="#0f172a">CLI</text>
+  <text x="58" y="867" font-size="11.5" fill="#64748b">diff · reason · fan-out · approve · report</text>
+  <text x="58" y="885" font-size="11.5" fill="#64748b">inventory · history · send · watch · doctor</text>
+
+  <rect x="470" y="822" width="400" height="72" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="488" y="846" font-size="13" font-weight="600" fill="#0f172a">FastAPI + React</text>
+  <text x="488" y="867" font-size="11.5" fill="#64748b">REST for productions, inventory, approval</text>
+  <text x="488" y="885" font-size="11.5" fill="#64748b">SSE streams the pipeline's own events live</text>
+
+  <rect x="900" y="822" width="240" height="72" rx="8" fill="#eef4fd" stroke="#2f6fd0"/>
+  <text x="918" y="846" font-size="13" font-weight="600" fill="#0f172a">Email out</text>
+  <text x="918" y="867" font-size="11.5" fill="#64748b">one per department, only</text>
+  <text x="918" y="885" font-size="11.5" fill="#64748b">after the AD approves</text>
+
+  <path d="M 240 894 L 240 938 L 1020 938 L 1020 898" fill="none" stroke="#2f6fd0" stroke-width="1.6" marker-end="url(#arb)"/>
+  <path d="M 670 894 L 670 938" fill="none" stroke="#2f6fd0" stroke-width="1.6"/>
+  <rect x="700" y="926" width="150" height="22" rx="4" fill="#ffffff"/>
+  <text x="712" y="942" font-size="11.5" font-weight="600" fill="#2f6fd0">only after approval</text>
+</svg>

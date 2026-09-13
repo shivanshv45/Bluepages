@@ -45,7 +45,10 @@ class Department(str, Enum):
     """Who receives a finding.
 
     Four departments first, per DECISIONS.md, plus the three non-department
-    consumers of the same diff: clearance, schedule, and the AD.
+    consumers of the same diff: clearance, schedule, and the AD. Social is a
+    fifth routed department: it needs judgment (is this newsworthy, write the
+    copy), unlike Finance, which only restates numbers already computed
+    elsewhere and never receives findings directly.
     """
 
     PROPS = "props"
@@ -59,6 +62,8 @@ class Department(str, Enum):
     CLEARANCE = "clearance"
     SCHEDULE = "schedule"
     AD = "ad"
+    SOCIAL = "social"
+    FINANCE = "finance"
 
 
 class LabelledChange(BaseModel):

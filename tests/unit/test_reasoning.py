@@ -285,3 +285,118 @@ def test_extracted_elements_reach_the_prompt(mechanical):
 
     prompt = next(p for p in client.prompts if "SCENE 5A" in p)
     assert "vehicle: Ford Bronco [branded]" in prompt
+
+
+class TestNumericSceneNumbers:
+    """A model that writes `"scene": 7` must not lose the whole finding.
+
+    Scene numbers are strings because of inserts like 34A, but a model looking
+    at scene 7 writes the JSON number 7. Rejecting that discarded correct
+    judgments over typing: one unquoted field lost every finding in the scene.
+    """
+
+    def test_an_integer_scene_is_accepted(self):
+        from bluepages.llm.structured import parse_as
+        from bluepages.semantic.reasoning import SceneFindings
+
+        parsed = parse_as(
+            '{"findings":[{"kind":"element_relocated","summary":"s",'
+            '"scene":7,"from_scene":3,"departments":["props"],'
+            '"reasoning":"r","element":"brass letter opener","confidence":0.95}]}',
+            SceneFindings,
+        )
+        finding = parsed.findings[0]
+        assert finding.scene == "7"
+        assert finding.from_scene == "3"
+
+    def test_a_quoted_scene_is_unchanged(self):
+        """The common case must not regress: 34A has to survive verbatim."""
+        from bluepages.llm.structured import parse_as
+        from bluepages.semantic.reasoning import SceneFindings
+
+        parsed = parse_as(
+            '{"findings":[{"kind":"scene_inserted","summary":"s",'
+            '"scene":"34A","departments":["schedule"],"reasoning":"r"}]}',
+            SceneFindings,
+        )
+        assert parsed.findings[0].scene == "34A"
+
+    def test_a_float_scene_does_not_become_seven_point_zero(self):
+        from bluepages.llm.structured import parse_as
+        from bluepages.semantic.reasoning import SceneFindings
+
+        parsed = parse_as(
+            '{"findings":[{"kind":"scene_omitted","summary":"s",'
+            '"scene":7.0,"departments":["schedule"],"reasoning":"r"}]}',
+            SceneFindings,
+        )
+        assert parsed.findings[0].scene == "7"
+
+
+class TestSceneLabelNormalisation:
+    """A model that labels its scene must not lose a correct judgment.
+
+    "SCENE 4: Character renamed" and "2/INT. FARMHOUSE KITCHEN" both name a
+    scene the diff flagged, but the guard compares against bare numbers and
+    dropped them. The judgment was right; only the formatting was loose.
+    """
+
+    def test_a_labelled_scene_reduces_to_its_number(self):
+        from bluepages.llm.structured import parse_as
+        from bluepages.semantic.reasoning import SceneFindings
+
+        parsed = parse_as(
+            '{"findings":[{"kind":"character_renamed","summary":"s",'
+            '"scene":"SCENE 4: Character renamed","departments":["cast"],'
+            '"reasoning":"r"}]}',
+            SceneFindings,
+        )
+        assert parsed.findings[0].scene == "4"
+
+    def test_a_heading_suffix_is_stripped(self):
+        from bluepages.llm.structured import parse_as
+        from bluepages.semantic.reasoning import SceneFindings
+
+        parsed = parse_as(
+            '{"findings":[{"kind":"time_of_day_changed","summary":"s",'
+            '"scene":"2/INT. FARMHOUSE KITCHEN - NIGHT","departments":["schedule"],'
+            '"reasoning":"r"}]}',
+            SceneFindings,
+        )
+        assert parsed.findings[0].scene == "2"
+
+    def test_an_insert_number_survives(self):
+        """34A must not become 34: they are different scenes."""
+        from bluepages.llm.structured import parse_as
+        from bluepages.semantic.reasoning import SceneFindings
+
+        parsed = parse_as(
+            '{"findings":[{"kind":"scene_inserted","summary":"s",'
+            '"scene":"Scene 34A - EXT. LOT","departments":["schedule"],'
+            '"reasoning":"r"}]}',
+            SceneFindings,
+        )
+        assert parsed.findings[0].scene == "34A"
+
+    def test_a_value_with_no_number_is_left_for_the_guard(self):
+        """Unparseable stays unparseable, so the guard can still reject it."""
+        from bluepages.llm.structured import parse_as
+        from bluepages.semantic.reasoning import SceneFindings
+
+        parsed = parse_as(
+            '{"findings":[{"kind":"action_rewritten","summary":"s",'
+            '"scene":"the kitchen scene","departments":["ad"],"reasoning":"r"}]}',
+            SceneFindings,
+        )
+        assert parsed.findings[0].scene == "the kitchen scene"
+
+    def test_the_guard_still_rejects_a_scene_the_diff_did_not_flag(self):
+        """Normalising must not weaken the hallucination guard."""
+        from bluepages.semantic.reasoning import Finding, _reject_unfounded
+        from bluepages.testdata import ChangeKind
+
+        finding = Finding(kind=ChangeKind.ACTION_REWRITTEN, summary="s", scene="SCENE 99")
+        kept, rejected, ripples = _reject_unfounded([finding], asked_about="4", flagged={"4"})
+        assert kept == []
+        assert len(rejected) == 1
+        assert len(ripples) == 1

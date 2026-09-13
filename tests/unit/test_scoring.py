@@ -171,6 +171,65 @@ def test_rename_called_a_new_role_is_caught(key):
     assert not card.passed
 
 
+def test_explicitly_ruling_out_the_forbidden_phrase_is_not_caught(key):
+    """A real run's actual output: the model states the correct judgment by
+    negating the wrong one. This must score as right, not as the error it
+    is explicitly ruling out."""
+    result = _perfect(key)
+    for finding in result.findings:
+        if finding.kind is ChangeKind.CHARACTER_RENAMED:
+            finding.summary = "JANITOR renamed to CUSTODIAN. Do not book a new actor."
+            finding.reasoning = (
+                "Casting must not treat this as a new role requiring a new booking."
+            )
+    card = score(key, result)
+
+    entry = next(s for s in card.scores if s.change_id == "character-renamed")
+    assert entry.said_forbidden == []
+    assert entry.correct
+    assert card.passed
+
+
+def test_negation_does_not_reach_across_a_sentence_boundary(key):
+    """A negation in one sentence must not excuse a plain assertion in the
+    next: the expensive error stated as fact is still the expensive error."""
+    result = _perfect(key)
+    for finding in result.findings:
+        if finding.kind is ChangeKind.CHARACTER_RENAMED:
+            finding.summary = "This is not a recast. A new role must be cast."
+    card = score(key, result)
+
+    entry = next(s for s in card.scores if s.change_id == "character-renamed")
+    assert "new role" in entry.said_forbidden
+    assert not card.passed
+
+
+def test_one_negated_and_one_asserted_occurrence_still_fails(key):
+    """Hedging once does not excuse asserting the same error elsewhere."""
+    result = _perfect(key)
+    for finding in result.findings:
+        if finding.kind is ChangeKind.CHARACTER_RENAMED:
+            finding.summary = "Not a new role for the cue change."
+            finding.reasoning = "Casting should treat CUSTODIAN as a new role."
+    card = score(key, result)
+
+    entry = next(s for s in card.scores if s.change_id == "character-renamed")
+    assert "new role" in entry.said_forbidden
+
+
+def test_rather_than_and_instead_of_count_as_negation(key):
+    result = _perfect(key)
+    for finding in result.findings:
+        if finding.kind is ChangeKind.CHARACTER_RENAMED:
+            finding.summary = "This is a rename rather than a new role."
+            finding.reasoning = "A continuity update instead of a new booking."
+    card = score(key, result)
+
+    entry = next(s for s in card.scores if s.change_id == "character-renamed")
+    assert entry.said_forbidden == []
+    assert card.passed
+
+
 def test_day_to_night_routed_to_props_is_caught(key):
     """Routing a scheduling change to props is noise, and the key forbids it."""
     result = _perfect(key)

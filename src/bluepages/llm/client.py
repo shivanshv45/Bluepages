@@ -10,9 +10,11 @@ after the fact:
 3. Responses are cached on disk while iterating, keyed by the exact request, so
    re-running the pipeline on an unchanged prompt costs nothing.
 
-The fallback chain is `Sonnet -> Haiku -> Groq/Gemini`. Which model answered is
-always recorded and emitted, because fallback output is weaker and that must be
-visible rather than silent.
+The fallback chain is `judgment -> bulk -> Groq/Gemini`, both Bedrock rungs
+first. `BLUEPAGES_CHAIN_ORDER=fallback_first` reverses the two groups for an
+account whose Bedrock access is granted but throttled to zero. Which model
+answered is always recorded and emitted, because fallback output is weaker and
+that must be visible rather than silent.
 """
 
 from __future__ import annotations
@@ -34,6 +36,16 @@ class BudgetExceededError(RuntimeError):
     """The per-run LLM call ceiling was hit. A guard against runaway loops."""
 
 
+class TruncatedResponseError(ValueError):
+    """A provider returned no usable text, usually by exhausting max_tokens.
+
+    A `ValueError` on purpose: the classifier treats Python data errors as
+    fatal, and the same over-long prompt truncates identically everywhere, so
+    burning the rest of the chain on it helps nobody. It must never be
+    swallowed into an empty answer, which reads as "nothing to report".
+    """
+
+
 class AllModelsFailedError(RuntimeError):
     """Every model in the chain failed. Carries what each one said."""
 
@@ -47,7 +59,7 @@ class AllModelsFailedError(RuntimeError):
 class ModelRole:
     """One rung of the fallback chain."""
 
-    name: str          # human label, e.g. "sonnet-5"
+    name: str          # the role, e.g. "judgment". Not the model: that is model_id
     model_id: str      # provider model id
     provider: str      # "bedrock" | "groq" | "gemini"
 
@@ -130,20 +142,27 @@ class ModelClient:
         """The ordered fallback chain for this kind of work.
 
         Falls back *within* Bedrock first and only leaves AWS on provider-level
-        failure, per DECISIONS.md.
+        failure, per DECISIONS.md. `BLUEPAGES_CHAIN_ORDER=fallback_first`
+        reverses the two groups for when Bedrock is reachable but throttled to
+        zero throughput; the order *within* each group is unchanged.
         """
         s = self.settings
-        sonnet = ModelRole("sonnet-5", s.bedrock_model_judgment, "bedrock")
-        haiku = ModelRole("haiku-4.5", s.bedrock_model_bulk, "bedrock")
+        # The label says the role, not the model: whatever id is configured for
+        # judgment is the judgment rung even when it is not a Sonnet.
+        judgment_rung = ModelRole("judgment", s.bedrock_model_judgment, "bedrock")
+        bulk_rung = ModelRole("bulk", s.bedrock_model_bulk, "bedrock")
 
-        rungs = [sonnet, haiku] if judgment else [haiku, sonnet]
+        bedrock = [judgment_rung, bulk_rung] if judgment else [bulk_rung, judgment_rung]
 
-        # Leave AWS only after both Bedrock models have failed.
+        free: list[ModelRole] = []
         if s.groq_api_key:
-            rungs.append(ModelRole("groq", s.groq_model, "groq"))
+            free.append(ModelRole("groq", s.groq_model, "groq"))
         if s.gemini_api_key:
-            rungs.append(ModelRole("gemini", s.gemini_model, "gemini"))
-        return rungs
+            free.append(ModelRole("gemini", s.gemini_model, "gemini"))
+
+        if s.bluepages_chain_order == "fallback_first":
+            return free + bedrock
+        return bedrock + free
 
     # --- the call ----------------------------------------------------------
 
@@ -155,8 +174,15 @@ class ModelClient:
         max_tokens: int | None = None,
         temperature: float = 0.0,
         cache_key_extra: str = "",
+        label: str = "",
     ) -> Completion:
-        """Run one completion through the chain. Always bounded, always logged."""
+        """Run one completion through the chain. Always bounded, always logged.
+
+        `label` says what the call is *for*, e.g. "scene 7". It reaches the
+        event stream and therefore CloudWatch and the live view, where a run of
+        identical "bulk (bedrock)" lines says nothing about what the agent is
+        working on.
+        """
         self.budget.check()
 
         # CLAUDE.md: always set max_tokens. No path leaves this None.
@@ -170,8 +196,9 @@ class ModelClient:
             if cached is not None:
                 self.stream.emit(
                     EventKind.MODEL_CALL_FINISHED,
-                    f"cache hit ({cached.model_name})",
+                    f"{label}: cached" if label else f"cache hit ({cached.model_name})",
                     model=cached.model_name,
+                    label=label,
                     cached=True,
                 )
                 return cached
@@ -182,8 +209,9 @@ class ModelClient:
         for depth, role in enumerate(rungs):
             self.stream.emit(
                 EventKind.MODEL_CALL_STARTED,
-                f"{role.name} ({role.provider})",
+                f"{label}: {role.name}" if label else f"{role.name} ({role.provider})",
                 model=role.name,
+                label=label,
                 model_id=role.model_id,
                 provider=role.provider,
                 attempt=depth + 1,
@@ -228,9 +256,12 @@ class ModelClient:
             self.budget.charge(completion)
             self.stream.emit(
                 EventKind.MODEL_CALL_FINISHED,
-                f"{role.name} answered in {completion.latency_s:.1f}s"
+                f"{label}: {role.name} in {completion.latency_s:.1f}s"
+                if label
+                else f"{role.name} answered in {completion.latency_s:.1f}s"
                 + (" (via fallback)" if completion.via_fallback else ""),
                 model=role.name,
+                label=label,
                 via_fallback=completion.via_fallback,
                 input_tokens=completion.input_tokens,
                 output_tokens=completion.output_tokens,
@@ -275,13 +306,52 @@ class ModelClient:
         max_tokens: int,
         temperature: float,
     ) -> tuple[str, dict[str, int]]:
-        """Call Bedrock's Converse API directly.
+        """Call Bedrock, through Strands by default.
 
-        Deliberately boto3 rather than a Strands Agent: this is a single
-        stateless completion with no tools and no conversation. Strands drives
-        the department agents in Layer 5, where its multi-agent orchestration
-        actually earns its place.
+        `BLUEPAGES_AGENT_RUNTIME=boto3` drops to the raw Converse call below.
+        Both paths return the same `(text, usage)` pair, so everything above
+        this method, the cache, the budget and the fallback classifier, cannot
+        tell which one answered.
         """
+        if self.settings.bluepages_agent_runtime == "strands":
+            return self._invoke_strands(role, prompt, system, max_tokens, temperature)
+        return self._invoke_converse(role, prompt, system, max_tokens, temperature)
+
+    def _invoke_strands(
+        self,
+        role: ModelRole,
+        prompt: str,
+        system: str | None,
+        max_tokens: int,
+        temperature: float,
+    ) -> tuple[str, dict[str, int]]:
+        """One completion through a Strands agent.
+
+        The agent is built per call. These are stateless single completions and
+        a reused agent would carry one scene's conversation into the next.
+        """
+        from bluepages.llm.agent_runtime import build_agent, text_of, usage_from
+
+        agent = build_agent(
+            role=role,
+            system=system,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            budget=self.budget,
+            region=self.settings.aws_region,
+        )
+        result = agent(prompt)
+        return text_of(result), usage_from(result)
+
+    def _invoke_converse(
+        self,
+        role: ModelRole,
+        prompt: str,
+        system: str | None,
+        max_tokens: int,
+        temperature: float,
+    ) -> tuple[str, dict[str, int]]:
+        """The raw boto3 Converse path, kept as the escape hatch."""
         client = self._bedrock_runtime()
         kwargs: dict[str, Any] = {
             "modelId": role.model_id,
@@ -343,8 +413,20 @@ class ModelClient:
             max_tokens=max_tokens,
             temperature=temperature,
         )
+        choice = resp.choices[0]
+        text = choice.message.content or ""
+        # A reasoning model spends max_tokens on hidden reasoning before it
+        # writes anything, so a tight ceiling returns finish_reason="length"
+        # and empty content. Returning that would record "this scene needs
+        # nothing", which is a real answer and hides the failure completely.
+        if not text.strip():
+            raise TruncatedResponseError(
+                f"{role.model_id} returned no content "
+                f"(finish_reason={choice.finish_reason!r}, max_tokens={max_tokens}). "
+                "Raise BLUEPAGES_MAX_TOKENS or use a non-reasoning model."
+            )
         usage = resp.usage
-        return resp.choices[0].message.content or "", {
+        return text, {
             "inputTokens": getattr(usage, "prompt_tokens", 0),
             "outputTokens": getattr(usage, "completion_tokens", 0),
         }
@@ -372,8 +454,19 @@ class ModelClient:
                 temperature=temperature,
             ),
         )
+        text = resp.text or ""
+        if not text.strip():
+            # Same trap as Groq: MAX_TOKENS truncation yields empty text, and
+            # an empty answer is indistinguishable from "nothing to report".
+            reason = getattr(
+                (resp.candidates or [None])[0], "finish_reason", None
+            )
+            raise TruncatedResponseError(
+                f"{role.model_id} returned no content (finish_reason={reason!r}, "
+                f"max_tokens={max_tokens})."
+            )
         meta = getattr(resp, "usage_metadata", None)
-        return resp.text or "", {
+        return text, {
             "inputTokens": getattr(meta, "prompt_token_count", 0) or 0,
             "outputTokens": getattr(meta, "candidates_token_count", 0) or 0,
         }

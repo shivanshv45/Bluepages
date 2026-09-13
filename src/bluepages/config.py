@@ -48,17 +48,38 @@ class Settings(BaseSettings):
     # --- Fallback providers (Layer 3.5) ------------------------------------
     groq_api_key: str | None = Field(default=None)
     gemini_api_key: str | None = Field(default=None)
-    groq_model: str = Field(default="llama-3.3-70b-versatile")
-    gemini_model: str = Field(default="gemini-2.0-flash")
+    # Verified against a live key on 2026-09-05. llama-3.3-70b-versatile, the
+    # previous default, is no longer served. gpt-oss-120b is a reasoning model:
+    # it spends max_tokens on hidden reasoning first, so a small ceiling
+    # returns empty content. TruncatedResponseError catches that rather than
+    # letting it read as "nothing to report".
+    groq_model: str = Field(default="openai/gpt-oss-120b")
+    gemini_model: str = Field(default="gemini-2.5-flash")
+
+    # Bedrock first is the documented default (DECISIONS.md: resilience, not
+    # cost). "fallback_first" reverses the chain so Groq/Gemini are tried
+    # before Bedrock, for when Bedrock access is provisioned but throttled to
+    # zero throughput, e.g. a fresh account waiting on a quota increase.
+    bluepages_chain_order: str = Field(default="bedrock_first")
 
     # --- Storage (Layers 4 and 6) ------------------------------------------
     s3_bucket: str | None = Field(default=None)
     supabase_url: str | None = Field(default=None)
     supabase_service_key: str | None = Field(default=None)
+    # The direct Postgres connection string, which is not the API URL. Absent
+    # means the element database falls back to a local SQLite file, so Layer 4
+    # works before any cloud setup exists.
+    supabase_db_url: str | None = Field(default=None)
 
     # --- Email (Layer 8) ----------------------------------------------------
     resend_api_key: str | None = Field(default=None)
     resend_from: str | None = Field(default=None)
+
+    # --- Agent runtime ------------------------------------------------------
+    # "strands" runs every Bedrock call through a Strands agent; "boto3" uses
+    # the raw Converse call. Both enforce the same guards, and the escape hatch
+    # exists so a Strands-level bug is never the thing that blocks a demo.
+    bluepages_agent_runtime: str = Field(default="strands")
 
     # --- Cost guards --------------------------------------------------------
     # CLAUDE.md: never an unbounded loop, always max_tokens, cache while iterating.
@@ -71,6 +92,24 @@ class Settings(BaseSettings):
     @classmethod
     def _upper(cls, v: str) -> str:
         return v.upper()
+
+    @field_validator("bluepages_agent_runtime")
+    @classmethod
+    def _known_runtime(cls, v: str) -> str:
+        v = v.lower().strip()
+        if v not in {"strands", "boto3"}:
+            raise ValueError(f"agent runtime must be 'strands' or 'boto3', got {v!r}")
+        return v
+
+    @field_validator("bluepages_chain_order")
+    @classmethod
+    def _known_chain_order(cls, v: str) -> str:
+        v = v.lower().strip()
+        if v not in {"bedrock_first", "fallback_first"}:
+            raise ValueError(
+                f"chain order must be 'bedrock_first' or 'fallback_first', got {v!r}"
+            )
+        return v
 
     # --- Derived ------------------------------------------------------------
     @property

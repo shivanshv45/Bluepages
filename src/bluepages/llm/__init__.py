@@ -7,6 +7,7 @@ from bluepages.llm.client import (
     ModelClient,
     ModelRole,
     RunBudget,
+    TruncatedResponseError,
 )
 from bluepages.llm.fallback import Retryability, classify, is_retryable
 
@@ -18,6 +19,7 @@ __all__ = [
     "ModelRole",
     "Retryability",
     "RunBudget",
+    "TruncatedResponseError",
     "classify",
     "is_retryable",
 ]

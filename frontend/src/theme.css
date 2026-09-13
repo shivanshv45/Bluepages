@@ -1,0 +1,42 @@
+/* Bluepages: the dark room.
+ *
+ * Revisions land after wrap and get read at night, so the app is dark by
+ * default. The revision-colour sequence still carries meaning (blue, pink,
+ * yellow, green, red); the values are lifted for a dark ground rather than
+ * reused from paper, where they would fail contrast.
+ *
+ * Tokens only. Components never reach past these.
+ */
+
+:root {
+  --void: #08090d;
+  --ground: #0b0d12;
+  --surface: #141822;
+  --surface-2: #1a1f2b;
+  --raised: #212736;
+
+  --text: #e8e9ed;
+  --text-2: #8b92a4;
+  --text-3: #5c6478;
+
+  --line: #222838;
+  --line-2: #2e3546;
+
+  --blue: #4c7df0;
+  --blue-dim: #1c2942;
+  --pink: #e4568a;
+  --pink-dim: #33192a;
+  --amber: #d9a441;
+  --amber-dim: #2f2616;
+  --green: #3e9e6b;
+  --green-dim: #14291f;
+  --red: #d4574a;
+  --red-dim: #2e1917;
+
+  --display: "Bebas Neue", "Oswald", Impact, sans-serif;
+  --sans: "Inter Tight", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+  --glow: 0 0 0 1px rgba(76, 125, 240, 0.3), 0 0 24px -6px rgba(76, 125, 240, 0.35);
+}

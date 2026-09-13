@@ -40,6 +40,10 @@ db = [
     "psycopg[binary]>=3.2.0",
 ]
 dev = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "sse-starlette>=2.1.3",
+    "httpx",
     "pytest>=8.3.0",
     "pytest-cov>=6.0.0",
     "ruff>=0.8.0",
@@ -88,9 +92,9 @@ mypy_path = "src"
 warn_unused_ignores = true
 warn_redundant_casts = true
 
-# Optional fallback providers: installed only with the `fallback` extra, and
+# Optional providers: installed only with the `fallback` and `db` extras, and
 # imported lazily inside the functions that use them. Absent stubs here are
 # expected, not a type error.
 [[tool.mypy.overrides]]
-module = ["groq.*", "google.*", "google.genai.*"]
+module = ["groq.*", "google.*", "google.genai.*", "psycopg.*"]
 ignore_missing_imports = true

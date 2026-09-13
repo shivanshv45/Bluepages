@@ -156,17 +156,59 @@ def _finding_text(finding: Finding) -> str:
     return " ".join(parts).lower()
 
 
+# Cues that mean the phrase right after them is being ruled out, not asserted.
+# "Casting must not treat this as a new role" is the correct judgment, not the
+# expensive error the key is trying to catch.
+_NEGATION = re.compile(
+    r"\b(not|never|no|cannot|can't|won't|doesn't|isn't|aren't|avoid|avoids|"
+    r"rather than|instead of|without)\b"
+)
+
+# How far back a negation cue can reach and still count. Wide enough to cover
+# "must not treat this as a new role", narrow enough that an unrelated
+# negation earlier in a long sentence cannot excuse a real assertion later in
+# it.
+_NEGATION_WINDOW_WORDS = 6
+
+
+def _sentence_start(text: str, before: int) -> int:
+    """Index just after the nearest sentence boundary before `before`.
+
+    A negation must not reach across a sentence break: "This is not a recast.
+    A new role must be cast." is the expensive error stated plainly, and the
+    negation in the first sentence must not excuse the assertion in the second.
+    """
+    boundary = max(text.rfind(".", 0, before), text.rfind(";", 0, before),
+                   text.rfind("!", 0, before), text.rfind("?", 0, before))
+    return boundary + 1
+
+
+def _is_negated(text: str, match_start: int) -> bool:
+    """Whether the phrase at `match_start` is being ruled out, not asserted."""
+    start = _sentence_start(text, match_start)
+    prefix = text[start:match_start]
+    window = " ".join(prefix.split()[-_NEGATION_WINDOW_WORDS:])
+    return _NEGATION.search(window) is not None
+
+
 def _says(text: str, phrase: str) -> bool:
-    """Whether a forbidden phrase appears, tolerant of ordinary word variation.
+    """Whether a forbidden phrase is actually asserted, not just present.
 
     Matched on word boundaries so "new role" does not fire on "new roles" being
     ruled out, and stemmed loosely so "cut" catches "cuts". Deliberately not a
     substring test: "prop" as a substring matches "properly", and one of the
     forbidden phrases is exactly "prop".
+
+    A match right after a negation cue in the same sentence does not count: the
+    key's forbidden phrases are the expensive wrong conclusions, and a model
+    that explicitly rules one out ("must not treat this as a new role") has
+    made the correct judgment, not the error the phrase is meant to catch. The
+    phrase still counts if any occurrence anywhere in the text is unnegated, so
+    a model that both hedges and asserts is still caught.
     """
     words = [re.escape(w) for w in phrase.lower().split()]
     pattern = r"\b" + r"\W+".join(f"{w}(?:s|es|ed|d)?" for w in words) + r"\b"
-    return re.search(pattern, text) is not None
+    return any(not _is_negated(text, m.start()) for m in re.finditer(pattern, text))
 
 
 def _matches_element(change: LabelledChange, finding: Finding) -> bool:

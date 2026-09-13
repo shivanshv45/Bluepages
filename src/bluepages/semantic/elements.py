@@ -23,7 +23,7 @@ from __future__ import annotations
 import concurrent.futures
 from enum import Enum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from bluepages.events import EventKind, EventStream, NullStream
 from bluepages.llm import ModelClient
@@ -96,9 +96,17 @@ class ExtractedElement(BaseModel):
 
 
 class SceneElements(BaseModel):
-    """Everything one scene requires. The model returns exactly this."""
+    """Everything one scene requires. The model returns exactly this.
 
-    elements: list[ExtractedElement] = Field(default_factory=list)
+    `extra="forbid"` and no default on `elements`, both deliberately. A response
+    of the wrong shape would otherwise validate into an empty list, and a scene
+    that failed would be indistinguishable from a scene that genuinely needs
+    nothing. An empty answer has to be an answer, not a silent failure.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    elements: list[ExtractedElement]
 
 
 class SceneExtraction(BaseModel):
@@ -213,6 +221,7 @@ def extract_scene(
         judgment=False,
         max_tokens=1500,
         cache_key_extra="extract-v1",
+        label=f"scene {scene.number} elements",
     )
     parsed = parse_as(completion.text, SceneElements)
 

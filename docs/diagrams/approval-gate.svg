@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1060 490" width="1060" height="490" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#7d8aa0"/>
+    </marker>
+    <marker id="a2g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#15803d"/>
+    </marker>
+  </defs>
+  <rect width="1060" height="490" fill="#ffffff"/>
+
+  <text x="40" y="44" font-size="20" font-weight="700" fill="#0f172a">The approval gate</text>
+  <text x="40" y="68" font-size="13.5" fill="#64748b">The agent works unattended and drafts everything. Nothing reaches a department head until a human says so.</text>
+
+  <!-- autonomous side -->
+  <rect x="40" y="100" width="430" height="250" rx="10" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="60" y="126" font-size="11" font-weight="700" fill="#94a3b8" letter-spacing="1.2">UNATTENDED</text>
+
+  <rect x="60" y="140" width="390" height="46" rx="7" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="76" y="168" font-size="12.5" fill="#334155">Draft lands in S3, the agent wakes on its own</text>
+
+  <rect x="60" y="196" width="390" height="46" rx="7" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="76" y="224" font-size="12.5" fill="#334155">Parses, diffs, reasons, routes per department</text>
+
+  <rect x="60" y="252" width="390" height="46" rx="7" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="76" y="280" font-size="12.5" fill="#334155">Writes reports and proposals, all marked unapproved</text>
+
+  <text x="60" y="330" font-size="12" fill="#64748b" font-style="italic">No email is sent. No order is placed.</text>
+
+  <line x1="255" y1="186" x2="255" y2="192" stroke="#7d8aa0" stroke-width="1.6" marker-end="url(#a2)"/>
+  <line x1="255" y1="242" x2="255" y2="248" stroke="#7d8aa0" stroke-width="1.6" marker-end="url(#a2)"/>
+
+  <line x1="474" y1="225" x2="512" y2="225" stroke="#7d8aa0" stroke-width="1.8" marker-end="url(#a2)"/>
+
+  <!-- the gate -->
+  <rect x="518" y="140" width="230" height="170" rx="10" fill="#fff8e8" stroke="#d99b1c" stroke-width="1.6"/>
+  <text x="538" y="167" font-size="11" font-weight="700" fill="#b07d12" letter-spacing="1.2">THE ONE DECISION</text>
+  <text x="538" y="196" font-size="14" font-weight="600" fill="#0f172a">1st AD reviews</text>
+  <text x="538" y="222" font-size="12" fill="#64748b">One screen, grouped by</text>
+  <text x="538" y="240" font-size="12" fill="#64748b">department, urgent first.</text>
+  <text x="538" y="268" font-size="12" fill="#64748b">Approve, or send it back.</text>
+  <text x="538" y="294" font-size="11.5" fill="#b07d12" font-weight="600">bluepages approve</text>
+
+  <line x1="752" y1="225" x2="790" y2="225" stroke="#15803d" stroke-width="1.8" marker-end="url(#a2g)"/>
+
+  <!-- after -->
+  <rect x="796" y="100" width="224" height="250" rx="10" fill="#f1f8f3" stroke="#86bf9c"/>
+  <text x="816" y="126" font-size="11" font-weight="700" fill="#15803d" letter-spacing="1.2">ONLY THEN</text>
+
+  <rect x="816" y="140" width="184" height="44" rx="7" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="832" y="167" font-size="12.5" fill="#334155">Emails go out</text>
+
+  <rect x="816" y="194" width="184" height="44" rx="7" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="832" y="221" font-size="12.5" fill="#334155">Purchases commit</text>
+
+  <rect x="816" y="248" width="184" height="44" rx="7" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="832" y="275" font-size="12.5" fill="#334155">Budget draws down</text>
+
+  <text x="816" y="326" font-size="12" fill="#64748b" font-style="italic">Every attempt recorded.</text>
+
+  <rect x="40" y="382" width="980" height="76" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="60" y="406" font-size="12.5" font-weight="600" fill="#0f172a">Why the gate is the same code path either way</text>
+  <text x="60" y="427" font-size="11.5" fill="#64748b">An autonomous trigger that mails a dozen department heads unasked is the thing that gets switched off on day two. Reports persist</text>
+  <text x="60" y="445" font-size="11.5" fill="#64748b">unapproved whether a human or an upload started the run, and send only ever sees what approve touched.</text>
+</svg>

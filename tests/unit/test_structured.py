@@ -87,3 +87,29 @@ def test_schema_hint_is_json():
     hint = schema_hint(Thing)
     assert '"name"' in hint
     assert '"properties"' in hint
+
+
+def test_a_wrong_shaped_answer_does_not_validate_as_empty():
+    """The failure mode that hides: a payload of the wrong shape must raise.
+
+    Both response schemas have a required list and forbid extra keys, because
+    "this scene needs nothing" is a real answer and has to stay distinguishable
+    from "this scene failed". Without that, a broken prompt reads as a scene
+    with no elements and nothing anywhere reports a problem.
+    """
+    from bluepages.semantic.elements import SceneElements
+    from bluepages.semantic.reasoning import SceneFindings
+
+    with pytest.raises(SchemaError):
+        parse_as('{"findings": []}', SceneElements)
+    with pytest.raises(SchemaError):
+        parse_as('{"elements": []}', SceneFindings)
+
+
+def test_a_genuinely_empty_answer_still_parses():
+    """The other half: an empty list is a real answer, not an error."""
+    from bluepages.semantic.elements import SceneElements
+    from bluepages.semantic.reasoning import SceneFindings
+
+    assert parse_as('{"elements": []}', SceneElements).elements == []
+    assert parse_as('{"findings": []}', SceneFindings).findings == []

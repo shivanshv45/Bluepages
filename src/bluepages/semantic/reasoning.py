@@ -27,8 +27,10 @@ scoring is a comparison, not a translation.
 from __future__ import annotations
 
 import concurrent.futures
+import re
+from dataclasses import dataclass, field as dc_field
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from bluepages.diff import Alignment, AlignmentKind, DraftDiff, SceneDiff
 from bluepages.events import EventKind, EventStream, NullStream
@@ -40,6 +42,15 @@ from bluepages.testdata import ChangeKind, Department
 # Confidence below this is reported but marked for the AD to check rather than
 # sent to a department as fact.
 UNCERTAIN_BELOW = 0.6
+
+# A ripple check is a real bulk model call per candidate. Capped per run for
+# the same reason MAX_SEARCHES caps sourcing: CLAUDE.md forbids an unbounded
+# per-run cost, and a feature-length revision can reject many findings.
+MAX_RIPPLES = 2
+
+# The scene number at the front of a value like "SCENE 4: ..." or "2/INT. ...".
+# Anchored so a number later in a sentence is not mistaken for a scene.
+_SCENE_NUMBER_RE = re.compile(r"^\s*(?:scenes?\s*)?(\d+[A-Za-z]?)\b", re.IGNORECASE)
 
 
 class Finding(BaseModel):
@@ -63,6 +74,38 @@ class Finding(BaseModel):
     # Set by the clearance question, not by the department routing.
     risk: str | None = None
 
+    @field_validator("scene", "from_scene", "element", mode="before")
+    @classmethod
+    def _as_text(cls, v: object) -> object:
+        """Accept a scene number the model wrote as a number.
+
+        Scene numbers are strings because of inserts like 34A, but a model
+        looking at scene 7 writes `7`, not `"7"`. Rejecting that threw away
+        correct judgments over JSON typing: every finding in a scene was lost
+        because one field was unquoted.
+        """
+        if isinstance(v, bool):
+            return v
+        if isinstance(v, int | float):
+            # 7.0 from a JSON float must not become "7.0".
+            return str(int(v)) if float(v).is_integer() else str(v)
+        return v
+
+    @field_validator("scene", "from_scene", mode="after")
+    @classmethod
+    def _bare_number(cls, v: str | None) -> str | None:
+        """Reduce "SCENE 4: the janitor" or "2/INT. KITCHEN" to just the number.
+
+        The scene guard compares against the numbers the diff flagged, so a
+        finding that labels its scene instead of naming it gets dropped even
+        though the judgment is right. Only the leading number is taken, and a
+        value that holds no number is left alone for the guard to reject.
+        """
+        if v is None:
+            return None
+        match = _SCENE_NUMBER_RE.search(v)
+        return match.group(1).upper() if match else v
+
     @field_validator("departments", mode="before")
     @classmethod
     def _drop_unknown(cls, v: object) -> object:
@@ -82,19 +125,47 @@ class Finding(BaseModel):
 
 
 class SceneFindings(BaseModel):
-    """What the model returns for one scene."""
+    """What the model returns for one scene.
 
-    findings: list[Finding] = Field(default_factory=list)
+    Strict for the same reason as `SceneElements`: a wrong-shaped response must
+    not validate into an empty list, because "this scene changed nothing
+    meaningful" is a real and common answer here and has to stay
+    distinguishable from a failure.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    findings: list[Finding]
+
+
+@dataclass
+class RippleQuestion:
+    """A finding the model made about a scene the diff never flagged.
+
+    This is the one legitimate path to a finding in an unflagged scene: the
+    model noticed something while reasoning about a neighbouring change, and
+    `semantic/ripples.py` checks it against the actual scene text rather than
+    trusting or discarding it outright. Capped at MAX_RIPPLES per run.
+    """
+
+    asked_about: str
+    finding: Finding
+    note: str = dc_field(default="")
 
 
 class SemanticResult(BaseModel):
     """Every finding across the revision, plus how it was produced."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     findings: list[Finding] = Field(default_factory=list)
     models_used: dict[str, int] = Field(default_factory=dict)
     fallbacks: int = 0
     scenes_reasoned: int = 0
     rejected: list[str] = Field(default_factory=list)
+    # The subset of `rejected` worth checking as a ripple. Populated by
+    # reason_about_diff, consumed by semantic/ripples.py.
+    ripple_questions: list[RippleQuestion] = Field(default_factory=list)
 
     def by_department(self, department: Department) -> list[Finding]:
         return [f for f in self.findings if department in f.departments]
@@ -142,6 +213,8 @@ The judgment calls that matter, in order of how expensive it is to get them wron
 
 5. CLEARANCE. Any real brand, song title, book title, artwork or recognisable building introduced by this revision is a rights liability. Flag it with a risk level. Caught at script stage it is a phone call; caught after the shoot it is a reshoot.
 
+6. SOCIAL. Route to social only when a change is genuinely newsworthy to an audience following the production: a new location, a striking new prop or vehicle, a notable cast change. An ordinary rewrite, a scheduling flip, or a continuity fix is not social's business, and routing routine changes there is the same noise problem as over-routing to any other department.
+
 Rules:
 - Report only what the given diff shows. Never infer a change you were not shown.
 - One finding per real change. Do not split a rename into a cue finding and a dialogue finding.
@@ -153,7 +226,11 @@ Return only JSON matching the schema. No prose outside it."""
 
 
 _KIND_VALUES = ", ".join(k.value for k in ChangeKind)
-_DEPT_VALUES = ", ".join(d.value for d in Department)
+# Finance is a consumer, not a routing target: it restates figures already
+# computed from decisions and budget rows, and never reasons about a finding
+# directly. Excluding it from what the model can route to is what keeps that
+# true, per DECISIONS.md.
+_DEPT_VALUES = ", ".join(d.value for d in Department if d is not Department.FINANCE)
 
 _RESPONSE_HINT = (
     'Return JSON: {"findings": [{"kind": ..., "summary": ..., "scene": ..., '
@@ -348,8 +425,12 @@ def reason_about_diff(
             if via_fallback:
                 result.fallbacks += 1
 
-            kept, rejected = _reject_unfounded(findings, number, changed_numbers)
+            kept, rejected, ripples = _reject_unfounded(findings, number, changed_numbers)
             result.rejected.extend(rejected)
+            if len(result.ripple_questions) < MAX_RIPPLES:
+                result.ripple_questions.extend(
+                    ripples[: MAX_RIPPLES - len(result.ripple_questions)]
+                )
             for note in rejected:
                 stream.emit(
                     EventKind.PARSE_WARNING,
@@ -387,12 +468,19 @@ def _reason_one(
     stream: EventStream,
 ) -> tuple[list[Finding], str, bool]:
     """One scene's judgment call. Sonnet-class: this is the product."""
+    # A scene with several findings needs room, and a reasoning model spends
+    # part of the budget thinking before it writes any JSON: the old hardcoded
+    # 2000 truncated mid-object and lost the whole scene's judgment. Explicit
+    # rather than defaulted, because CLAUDE.md requires every call to set it.
+    settings = getattr(client, "settings", None)
+    max_tokens = getattr(settings, "bluepages_max_tokens", 4096)
     completion = client.complete(
         prompt=prompt,
         system=SYSTEM,
         judgment=True,
-        max_tokens=2000,
+        max_tokens=max_tokens,
         cache_key_extra="reason-v1",
+        label=f"scene {number}",
     )
     parsed = parse_as(completion.text, SceneFindings)
     return parsed.findings, completion.model_name, completion.via_fallback
@@ -412,7 +500,7 @@ def _reject_unfounded(
     findings: list[Finding],
     asked_about: str,
     flagged: set[str],
-) -> tuple[list[Finding], list[str]]:
+) -> tuple[list[Finding], list[str], list[RippleQuestion]]:
     """Drop findings about scenes the diff never flagged.
 
     The guard against the failure mode that matters most here: a model given one
@@ -420,20 +508,28 @@ def _reject_unfounded(
     draft in general. A confident finding about a scene that did not change is
     worse than no finding, because the AD has no way to tell it apart from a
     real one.
+
+    Each rejection is also a ripple candidate: the model noticed a consequence
+    in a scene nobody asked about. `semantic/ripples.py` decides which of
+    these are worth checking against the real scene text.
     """
     kept: list[Finding] = []
     rejected: list[str] = []
+    ripples: list[RippleQuestion] = []
     for finding in findings:
         # A relocation legitimately names two scenes, so both are checked.
         scenes = [s for s in (finding.scene, finding.from_scene) if s]
         if all(s in flagged for s in scenes):
             kept.append(finding)
         else:
-            rejected.append(
+            note = (
                 f"asked about scene {asked_about}, answered about "
                 f"{'/'.join(scenes) or '(no scene)'}: {finding.summary[:80]}"
             )
-    return kept, rejected
+            rejected.append(note)
+            if scenes:
+                ripples.append(RippleQuestion(asked_about=asked_about, finding=finding, note=note))
+    return kept, rejected, ripples
 
 
 def _scene_sort_key(number: str) -> tuple[int, str]:
@@ -442,8 +538,10 @@ def _scene_sort_key(number: str) -> tuple[int, str]:
 
 
 __all__ = [
+    "MAX_RIPPLES",
     "UNCERTAIN_BELOW",
     "Finding",
+    "RippleQuestion",
     "SceneFindings",
     "SemanticResult",
     "reason_about_diff",

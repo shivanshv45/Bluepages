@@ -48,7 +48,13 @@ class EventKind(str, Enum):
 
     # Agents (Layer 5)
     AGENT_STARTED = "agent.started"
+    AGENT_STEP = "agent.step"
     AGENT_FINISHED = "agent.finished"
+
+    # Ripples (Layer 6)
+    RIPPLE_OPENED = "ripple.opened"
+    RIPPLE_STEP = "ripple.step"
+    RIPPLE_RESOLVED = "ripple.resolved"
 
     # Generic
     INFO = "info"
