@@ -14,6 +14,7 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { api } from "./api";
 import { FilmGrain, usePrefersReducedMotion } from "./FilmGrain";
 
 /* The demo sweep.
@@ -47,7 +48,18 @@ export function Home() {
   const reduced = usePrefersReducedMotion();
 
   // /projects is behind RequireAccount, so a signed-out visitor clicking
-  // through gets bounced to /login automatically. No auth check needed here.
+  // through gets bounced to /login automatically. The check here is only so
+  // the header offers one door rather than two: sign in, or go to the
+  // console, never both at once. null means we do not know yet, and the
+  // header holds the space rather than flickering the wrong label.
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
+  useEffect(() => {
+    api
+      .me()
+      .then((a) => setSignedIn(Boolean(a.signed_in)))
+      .catch(() => setSignedIn(false));
+  }, []);
+
   const onEnter = () => navigate("/projects");
 
   // The loop runs the sweep, holds on the finished state, then restarts.
@@ -81,12 +93,19 @@ export function Home() {
           <a href="#departments">Departments</a>
           <a href="#pipeline">How it runs</a>
         </nav>
-        <button className="btn-ghost" onClick={() => navigate("/login")}>
-          Sign in
-        </button>
-        <button className="btn-ghost" onClick={onEnter}>
-          Open the console
-        </button>
+        {signedIn === null ? (
+          <span className="btn-ghost" aria-hidden="true" style={{ visibility: "hidden" }}>
+            Sign in
+          </span>
+        ) : signedIn ? (
+          <button className="btn-ghost" onClick={onEnter}>
+            Open the console
+          </button>
+        ) : (
+          <button className="btn-ghost" onClick={() => navigate("/login")}>
+            Sign in
+          </button>
+        )}
       </header>
 
       <section className="hero">
