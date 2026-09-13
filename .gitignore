@@ -45,6 +45,15 @@ workspace/
 node_modules/
 .vite/
 dist-ssr/
+# Vite's build output. Covered by the Python `dist/` rule above by accident,
+# so name it here too rather than relying on that.
+frontend/dist/
+# TypeScript's incremental build cache. Machine-local, regenerated every build.
+*.tsbuildinfo
+
+# Vercel's project linkage, written by `vercel` on first deploy. Contains the
+# project and org ids, and is per-developer rather than per-project.
+.vercel/
 
 # Demo/mock frontend: reference only, not pushed to GitHub
 web/

@@ -88,6 +88,12 @@ class Settings(BaseSettings):
     bluepages_cache_llm: bool = Field(default=True)
     bluepages_log_level: str = Field(default="INFO")
 
+    # Set when the frontend is deployed to its own origin (e.g. Cloudflare
+    # Pages) rather than served through the local Vite proxy. Its presence is
+    # also what flips the session cookie to `Secure` + `SameSite=None`: a
+    # cross-site cookie needs both, and `Secure` breaks plain-http local dev.
+    bluepages_frontend_origin: str | None = Field(default=None)
+
     @field_validator("bluepages_log_level")
     @classmethod
     def _upper(cls, v: str) -> str:

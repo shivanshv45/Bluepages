@@ -133,8 +133,14 @@ class Runs:
         return list(self._runs.values())
 
 
-def create_app(db_path: Path | None = None) -> FastAPI:
-    """Build the API. `db_path` overrides the configured database, for tests."""
+def create_app(db_path: Path | None = None, workspace: Path | None = None) -> FastAPI:
+    """Build the API. `db_path` overrides the configured database, for tests.
+
+    `workspace` overrides where uploaded drafts are staged before parsing. The
+    default is a relative path, writable on a normal host but not on Lambda,
+    whose filesystem is read-only outside `/tmp`; the Lambda handler passes
+    `/tmp/workspace/drafts` here for exactly that reason.
+    """
     app = FastAPI(
         title="Bluepages",
         description="Script revisions, routed per department.",
@@ -143,15 +149,20 @@ def create_app(db_path: Path | None = None) -> FastAPI:
     app.state.runs = Runs()
     app.state.db_path = db_path
     # Where uploaded drafts are kept. The folder watcher reads the same shape.
-    app.state.workspace = Path("workspace/drafts")
+    app.state.workspace = workspace or Path("workspace/drafts")
 
-    # The frontend is served from a different origin in development and from
-    # static hosting in production, so it is always cross-origin.
+    # The frontend is served from a different origin in development (Vite on
+    # :5173) and from static hosting in production (Cloudflare Pages), so it
+    # is always cross-origin. Auth is a session cookie, and a browser drops a
+    # credentialed cookie on a wildcard origin outright, so a real origin is
+    # required whenever credentials are allowed: `allow_origins=["*"]` with
+    # `allow_credentials=True` is rejected by every browser, silently.
+    frontend_origin = get_settings().bluepages_frontend_origin
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=False,
-        allow_methods=["GET", "POST"],
+        allow_origins=[frontend_origin] if frontend_origin else ["*"],
+        allow_credentials=bool(frontend_origin),
+        allow_methods=["GET", "POST", "DELETE"],
         allow_headers=["*"],
     )
 
@@ -210,15 +221,20 @@ def _claim(app: FastAPI, title: str, token: str | None) -> None:
 def _set_session(response: Response, token: str) -> None:
     """Session cookie.
 
-    Not `secure` yet: local development runs over plain http, and a `secure`
-    cookie is silently dropped there. A deployed instance behind HTTPS should
-    set `secure=True` here.
+    Local dev runs same-site (Vite proxies /api), where `samesite=lax` and
+    plain http both work, and `secure` cookies are silently dropped over http.
+    A deployed frontend is cross-site (Cloudflare calling AWS), which needs
+    `samesite=none` and, browsers require it as a pair, `secure`. Which branch
+    to take is the same signal CORS already uses: whether a frontend origin is
+    configured.
     """
+    deployed = bool(get_settings().bluepages_frontend_origin)
     response.set_cookie(
         "bp_session",
         token,
         httponly=True,
-        samesite="lax",
+        samesite="none" if deployed else "lax",
+        secure=deployed,
         path="/",
         max_age=60 * 60 * 24 * 30,
     )
@@ -686,7 +702,16 @@ def _register(app: FastAPI) -> None:
             with _open(app) as db:
                 db.create_schema()
                 auth.end_session(db, bp_session)
-        response.delete_cookie("bp_session", path="/")
+        # A browser matches a deletion to the cookie it holds by name, path
+        # *and* attributes, so this has to mirror _set_session's samesite and
+        # secure or the old cookie survives "logout" on a deployed instance.
+        deployed = bool(get_settings().bluepages_frontend_origin)
+        response.delete_cookie(
+            "bp_session",
+            path="/",
+            samesite="none" if deployed else "lax",
+            secure=deployed,
+        )
         return {"ok": True}
 
     @app.get("/api/auth/me")

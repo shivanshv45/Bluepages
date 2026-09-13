@@ -1,0 +1,53 @@
+# Keep the build context small and keep secrets out of it. `railway up`
+# uploads this directory, so anything not excluded here leaves the machine.
+
+# Secrets. Config comes from Railway's environment, never from a baked-in file.
+.env
+.env.*
+!.env.example
+
+# Virtualenvs and caches: the image installs its own, and a Windows venv is
+# useless in a Linux container besides.
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# The frontend deploys separately (Cloudflare Pages), and node_modules is the
+# single biggest thing in the tree.
+frontend/
+web/
+node_modules/
+
+# Local run artifacts and the SQLite fallback database.
+.cache/
+.bluepages/
+*.db
+workspace/
+out/
+*.log
+
+# Not needed at runtime.
+.git/
+.github/
+.claude/
+tests/
+scripts/
+deploy/
+submission/
+docs/
+data/
+*.md
+!README.md
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
